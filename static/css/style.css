@@ -1,0 +1,10 @@
+.video-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #000;
+}
+
+video {
+    transform: scaleX(-1);
+}

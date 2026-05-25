@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flask Video Capture</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4 text-center">
+            Flask Webcam Video Capture
+        </h1>
+
+        <div class="video-wrapper mb-4">
+            <video 
+                id="video" 
+                autoplay 
+                playsinline 
+                class="w-full rounded-xl bg-black">
+            </video>
+
+            <canvas id="canvas" class="hidden"></canvas>
+        </div>
+
+        <div class="flex justify-center gap-4 mb-4">
+            <button 
+                id="startBtn"
+                class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                Start Camera
+            </button>
+
+            <button 
+                id="stopBtn"
+                class="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                Stop Camera
+            </button>
+        </div>
+
+        <div class="text-center">
+            <p id="status" class="text-gray-600">
+                Camera not started
+            </p>
+
+            <p id="backendResponse" class="text-sm text-green-600 mt-2"></p>
+        </div>
+    </div>
+
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Separate JS file -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>
