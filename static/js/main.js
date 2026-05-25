@@ -118,7 +118,7 @@ $(document).ready(function () {
             const liveness = detection.liveness;
             const realScore = liveness && liveness.scores ? liveness.scores.real : 0;
             const livenessText = liveness
-                ? ` | ${liveness.label} ${Math.round((liveness.confidence || 0) * 100)}%`
+                ? ` | real ${Math.round(realScore * 100)}%`
                 : "";
             const label = `${detection.label || "face"} ${Math.round((detection.confidence || 0) * 100)}%${livenessText}`;
             const color = realScore >= 0.6 ? "#22c55e" : "#ef4444";

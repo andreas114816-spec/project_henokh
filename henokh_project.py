@@ -14,6 +14,7 @@ DISTRO_NAME = "Ubuntu-22.04"
 PROJECT_FOLDER = "project_henokh"
 
 GIT_REPO_URL = "https://github.com/andreas114816-spec/project_henokh.git"
+AUTO_GIT_PULL = False
 
 PYTHON_VERSION = "3.12.13"
 PYTHON_PREFIX = f"/opt/python-{PYTHON_VERSION}"
@@ -549,6 +550,7 @@ set -e
 
 PROJECT_FOLDER="{PROJECT_FOLDER}"
 GIT_REPO_URL="{GIT_REPO_URL}"
+AUTO_GIT_PULL="{1 if AUTO_GIT_PULL else 0}"
 PYTHON_BIN="{PYTHON_BIN}"
 VENV_NAME="{VENV_NAME}"
 CLEAN_PROJECT="{clean_value}"
@@ -576,11 +578,15 @@ if [ -d "$PROJECT_FOLDER" ]; then
         echo "Valid Git repository found."
         cd "$PROJECT_FOLDER"
 
-        echo "Saving local changes temporarily..."
-        git stash push -u -m "auto-stash-before-installer-pull" || true
+        if [ "$AUTO_GIT_PULL" = "1" ]; then
+            echo "Saving local changes temporarily..."
+            git stash push -u -m "auto-stash-before-installer-pull" || true
 
-        echo "Pulling latest changes..."
-        git pull || true
+            echo "Pulling latest changes..."
+            git pull || true
+        else
+            echo "Auto git pull disabled. Using current project files."
+        fi
     else
         echo "Project folder exists but is not a Git repository."
         BACKUP_NAME="${{PROJECT_FOLDER}}_backup_$(date +%Y%m%d_%H%M%S)"
@@ -631,6 +637,12 @@ fi
 
 echo "Repairing typing_extensions if needed..."
 "$VENV_NAME/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
+
+echo "Repairing CPU Torch stack if needed..."
+"$VENV_NAME/bin/pip" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
+
+echo "Repairing TensorFlow/Keras if needed..."
+"$VENV_NAME/bin/pip" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
 
 echo "Checking Gunicorn..."
 if ! "$VENV_NAME/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
@@ -838,17 +850,27 @@ set_env_value "DB_PASSWORD" "{DB_PASSWORD}"
 echo "Database environment:"
 grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD)=" "$ENV_FILE" || true
 
-echo "Saving local changes temporarily..."
-git stash push -u -m "auto-stash-before-run-pull" || true
+if [ "{1 if AUTO_GIT_PULL else 0}" = "1" ]; then
+    echo "Saving local changes temporarily..."
+    git stash push -u -m "auto-stash-before-run-pull" || true
 
-echo "Pulling latest changes..."
-git pull || true
+    echo "Pulling latest changes..."
+    git pull || true
+else
+    echo "Auto git pull disabled. Using current project files."
+fi
 
 echo "Installing/updating requirements..."
 "{VENV_NAME}/bin/pip" install --progress-bar on -r requirements.txt
 
 echo "Repairing typing_extensions if needed..."
 "{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
+
+echo "Repairing CPU Torch stack if needed..."
+"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
+
+echo "Repairing TensorFlow/Keras if needed..."
+"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
 
 echo "Checking Gunicorn..."
 if ! "{VENV_NAME}/bin/python" -m pip show gunicorn > /dev/null 2>&1; then

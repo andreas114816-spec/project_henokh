@@ -23,13 +23,20 @@ face_model = None
 spoof_model = None
 
 
+class ModelUnavailableError(RuntimeError):
+    pass
+
+
 def get_face_model():
     global face_model
 
     if face_model is None:
-        from ultralytics import YOLO
+        try:
+            from ultralytics import YOLO
 
-        face_model = YOLO(str(FACE_MODEL_PATH))
+            face_model = YOLO(str(FACE_MODEL_PATH))
+        except Exception as error:
+            raise ModelUnavailableError(f"Face detection model unavailable: {error}") from error
 
     return face_model
 
@@ -38,10 +45,13 @@ def get_spoof_model():
     global spoof_model
 
     if spoof_model is None:
-        from models.mini_cnn import build_mini_cnn
+        try:
+            from models.mini_cnn import build_mini_cnn
 
-        spoof_model = build_mini_cnn()
-        spoof_model.load_weights(str(SPOOF_MODEL_PATH))
+            spoof_model = build_mini_cnn()
+            spoof_model.load_weights(str(SPOOF_MODEL_PATH))
+        except Exception as error:
+            raise ModelUnavailableError(f"Spoof detection model unavailable: {error}") from error
 
     return spoof_model
 
@@ -157,7 +167,18 @@ def detect_faces(frame):
             x1, y1, x2, y2 = box.xyxy[0].tolist()
             confidence = float(box.conf[0])
             class_id = int(box.cls[0])
-            liveness = classify_real_spoof(frame, x1, y1, x2, y2)
+
+            try:
+                liveness = classify_real_spoof(frame, x1, y1, x2, y2)
+            except ModelUnavailableError as error:
+                liveness = {
+                    "label": "unverified",
+                    "classId": None,
+                    "confidence": 0,
+                    "scores": {"real": 0, "spoof": 1},
+                    "error": str(error)
+                }
+
             detections.append({
                 "x": round(x1, 2),
                 "y": round(y1, 2),
@@ -194,7 +215,10 @@ def create_student():
     if frame is None:
         return jsonify({"success": False, "message": "Invalid face image"}), 400
 
-    detections = detect_faces(frame)
+    try:
+        detections = detect_faces(frame)
+    except ModelUnavailableError as error:
+        return jsonify({"success": False, "message": str(error)}), 503
 
     if len(detections) != 1:
         return jsonify({
@@ -275,7 +299,10 @@ def upload_frame():
         }), 400
 
     height, width, channels = frame.shape
-    detections = detect_faces(frame)
+    try:
+        detections = detect_faces(frame)
+    except ModelUnavailableError as error:
+        return jsonify({"success": False, "message": str(error)}), 503
 
     print(f"Received frame: {width}x{height}, detections: {len(detections)}")
 
