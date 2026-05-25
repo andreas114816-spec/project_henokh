@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presence Camera</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4" data-auto-start="{{ 'true' if auto_start else 'false' }}">
+    <main class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
+            <h1 class="text-2xl font-bold text-gray-800">Presence Camera</h1>
+            <a
+                href="{{ url_for('index') }}"
+                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50">
+                Back
+            </a>
+        </div>
+
+        <div class="video-wrapper mb-4">
+            <video
+                id="video"
+                autoplay
+                playsinline
+                class="w-full rounded-xl bg-black">
+            </video>
+
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="flex justify-center gap-4 mb-4">
+            <button
+                id="startBtn"
+                class="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700">
+                Start Camera
+            </button>
+
+            <button
+                id="stopBtn"
+                class="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700">
+                Stop Camera
+            </button>
+        </div>
+
+        <div class="text-center">
+            <p id="status" class="text-gray-600">
+                Camera not started
+            </p>
+
+            <p id="backendResponse" class="text-sm text-green-600 mt-2"></p>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

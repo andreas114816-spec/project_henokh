@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="bg-gray-100 min-h-screen px-4 py-6">
+    <main class="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[360px_1fr]">
+        <section class="bg-white rounded-xl shadow-lg p-6">
+            <div class="mb-5">
+                <h1 class="text-2xl font-bold text-gray-900">Add Student</h1>
+                <p class="text-sm text-gray-600 mt-2">Register student data and save a face embedding.</p>
+            </div>
+
+            <form id="studentForm" class="space-y-4">
+                <div>
+                    <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input
+                        id="studentName"
+                        name="name"
+                        type="text"
+                        required
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                </div>
+
+                <div>
+                    <label for="studentNim" class="block text-sm font-medium text-gray-700 mb-1">NIM</label>
+                    <input
+                        id="studentNim"
+                        name="nim"
+                        type="text"
+                        required
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 pt-2">
+                    <button
+                        id="saveStudentBtn"
+                        type="submit"
+                        class="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700">
+                        Save Student
+                    </button>
+
+                    <a
+                        href="{{ url_for('presence', start=1) }}"
+                        class="rounded-lg border border-gray-300 px-4 py-2 text-center font-medium text-gray-800 hover:bg-gray-50">
+                        Presence Camera
+                    </a>
+                </div>
+            </form>
+
+            <p id="studentStatus" class="mt-4 text-sm text-gray-600"></p>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-lg p-6">
+            <div class="mb-4 flex items-center justify-between gap-3">
+                <h2 class="text-xl font-semibold text-gray-900">Face Capture</h2>
+                <div class="flex gap-3">
+                    <button
+                        id="startStudentCameraBtn"
+                        class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+                        Start
+                    </button>
+
+                    <button
+                        id="stopStudentCameraBtn"
+                        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50">
+                        Stop
+                    </button>
+                </div>
+            </div>
+
+            <div class="video-wrapper">
+                <video
+                    id="studentVideo"
+                    autoplay
+                    playsinline
+                    class="w-full rounded-xl bg-black">
+                </video>
+            </div>
+
+            <p id="cameraStatus" class="mt-4 text-center text-sm text-gray-600">Camera not started</p>
+        </section>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='js/student.js') }}"></script>
+</body>
+</html>

@@ -2,3 +2,5 @@ venv
 !.gitignore
 __pycache__/
 *.pyc
+*.db
+.env
