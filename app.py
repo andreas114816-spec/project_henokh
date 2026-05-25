@@ -229,7 +229,7 @@ def create_student():
     detection = detections[0]
     real_score = (detection.get("liveness") or {}).get("scores", {}).get("real", 0)
 
-    if real_score < 0.6:
+    if real_score < 0.5:
         return jsonify({
             "success": False,
             "message": "Face must pass real-person check before saving"

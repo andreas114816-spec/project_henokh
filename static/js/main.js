@@ -121,7 +121,7 @@ $(document).ready(function () {
                 ? ` | real ${Math.round(realScore * 100)}%`
                 : "";
             const label = `${detection.label || "face"} ${Math.round((detection.confidence || 0) * 100)}%${livenessText}`;
-            const color = realScore >= 0.6 ? "#22c55e" : "#ef4444";
+            const color = realScore >= 0.5 ? "#22c55e" : "#ef4444";
             const x = canvas.width - detection.x - detection.width;
             const y = detection.y;
 
