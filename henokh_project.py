@@ -192,10 +192,15 @@ def run_wsl_script(script, user=None, check=True):
     process.stdin.write(script.encode("utf-8"))
     process.stdin.close()
 
-    for line in process.stdout:
-        clean_line = line.decode("utf-8", errors="replace").rstrip()
-        print(clean_line, flush=True)
-        write_log_file(clean_line)
+    while True:
+        chunk = process.stdout.read(4096)
+
+        if not chunk:
+            break
+
+        text = chunk.decode("utf-8", errors="replace")
+        print(text, end="", flush=True)
+        write_log_file(text.rstrip("\n"))
 
     process.wait()
 
@@ -426,7 +431,7 @@ cd /tmp
 
 if [ ! -f "Python-{PYTHON_VERSION}.tgz" ]; then
     echo "Downloading Python source..."
-    wget "https://www.python.org/ftp/python/{PYTHON_VERSION}/Python-{PYTHON_VERSION}.tgz"
+    wget --progress=bar:force:noscroll "https://www.python.org/ftp/python/{PYTHON_VERSION}/Python-{PYTHON_VERSION}.tgz"
 else
     echo "Python source archive already exists."
 fi
@@ -453,7 +458,7 @@ make -j"$(nproc)"
 echo "Installing Python..."
 make altinstall
 
-"{PYTHON_BIN}" -m pip install --upgrade pip setuptools wheel
+"{PYTHON_BIN}" -m pip install --progress-bar on --upgrade pip setuptools wheel
 
 echo "Python installation complete."
 "{PYTHON_BIN}" --version
@@ -612,11 +617,11 @@ else
 fi
 
 echo "Upgrading pip..."
-"$VENV_NAME/bin/python" -m pip install --upgrade pip setuptools wheel
+"$VENV_NAME/bin/python" -m pip install --progress-bar on --upgrade pip setuptools wheel
 
 if [ -f "requirements.txt" ]; then
     echo "Installing/updating requirements..."
-    "$VENV_NAME/bin/pip" install -r requirements.txt
+    "$VENV_NAME/bin/pip" install --progress-bar on -r requirements.txt
 else
     echo "ERROR: requirements.txt not found."
     exit 1
@@ -625,7 +630,7 @@ fi
 echo "Checking Gunicorn..."
 if ! "$VENV_NAME/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
     echo "Installing Gunicorn..."
-    "$VENV_NAME/bin/pip" install gunicorn
+    "$VENV_NAME/bin/pip" install --progress-bar on gunicorn
 else
     echo "Gunicorn already installed."
 fi
@@ -833,11 +838,11 @@ echo "Pulling latest changes..."
 git pull || true
 
 echo "Installing/updating requirements..."
-"{VENV_NAME}/bin/pip" install -r requirements.txt
+"{VENV_NAME}/bin/pip" install --progress-bar on -r requirements.txt
 
 echo "Checking Gunicorn..."
 if ! "{VENV_NAME}/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
-    "{VENV_NAME}/bin/pip" install gunicorn
+    "{VENV_NAME}/bin/pip" install --progress-bar on gunicorn
 fi
 
 echo "Loading .env..."
