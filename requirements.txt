@@ -5,4 +5,5 @@ opencv-python
 PyMySQL
 SQLAlchemy
 tensorflow
+typing_extensions>=4.15.0
 ultralytics

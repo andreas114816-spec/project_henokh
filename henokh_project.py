@@ -32,9 +32,9 @@ GUNICORN_WORKERS = "3"
 
 MARIADB_PORT_FILE = "/tmp/henokh_mariadb_port"
 
-DB_NAME = "henokh_presence"
-DB_USER = "henokh_user"
-DB_PASSWORD = "henokh_password"
+DB_NAME = "presence"
+DB_USER = "root"
+DB_PASSWORD = "password123"
 
 LOG_FILE = os.path.join(os.environ.get("TEMP", os.getcwd()), "henokh_project.log")
 
@@ -627,6 +627,9 @@ else
     exit 1
 fi
 
+echo "Repairing typing_extensions if needed..."
+"$VENV_NAME/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
+
 echo "Checking Gunicorn..."
 if ! "$VENV_NAME/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
     echo "Installing Gunicorn..."
@@ -839,6 +842,9 @@ git pull || true
 
 echo "Installing/updating requirements..."
 "{VENV_NAME}/bin/pip" install --progress-bar on -r requirements.txt
+
+echo "Repairing typing_extensions if needed..."
+"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
 
 echo "Checking Gunicorn..."
 if ! "{VENV_NAME}/bin/python" -m pip show gunicorn > /dev/null 2>&1; then

@@ -10,11 +10,8 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import base64
 import cv2
 import numpy as np
-from ultralytics import YOLO
 from database import SessionLocal, init_db, migrate_db, seed_admin_user
 from models.db_models import Student, User
-from models.mini_cnn import build_mini_cnn
-from models.mobilefacenet import build_face_embedding
 
 app = Flask(__name__)
 BASE_DIR = Path(__file__).resolve().parent
@@ -22,9 +19,31 @@ FACE_MODEL_PATH = BASE_DIR / "model" / "best.pt"
 SPOOF_MODEL_PATH = BASE_DIR / "model" / "mini_cnn_real_spoof.keras"
 SPOOF_LABELS = ("real", "spoof")
 
-face_model = YOLO(str(FACE_MODEL_PATH))
-spoof_model = build_mini_cnn()
-spoof_model.load_weights(str(SPOOF_MODEL_PATH))
+face_model = None
+spoof_model = None
+
+
+def get_face_model():
+    global face_model
+
+    if face_model is None:
+        from ultralytics import YOLO
+
+        face_model = YOLO(str(FACE_MODEL_PATH))
+
+    return face_model
+
+
+def get_spoof_model():
+    global spoof_model
+
+    if spoof_model is None:
+        from models.mini_cnn import build_mini_cnn
+
+        spoof_model = build_mini_cnn()
+        spoof_model.load_weights(str(SPOOF_MODEL_PATH))
+
+    return spoof_model
 
 
 @app.cli.command("init-db")
@@ -92,7 +111,7 @@ def classify_real_spoof(frame, x1, y1, x2, y2):
     face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
     face = cv2.resize(face, (112, 112), interpolation=cv2.INTER_AREA)
     face = face.astype("float32") / 255.0
-    scores = spoof_model.predict(np.expand_dims(face, axis=0), verbose=0)[0]
+    scores = get_spoof_model().predict(np.expand_dims(face, axis=0), verbose=0)[0]
     class_id = int(np.argmax(scores))
 
     return {
@@ -129,7 +148,8 @@ def crop_detected_face(frame, detection):
 
 
 def detect_faces(frame):
-    results = face_model.predict(frame, conf=0.35, verbose=False)
+    model = get_face_model()
+    results = model.predict(frame, conf=0.35, verbose=False)
     detections = []
 
     for result in results:
@@ -145,7 +165,7 @@ def detect_faces(frame):
                 "height": round(y2 - y1, 2),
                 "confidence": round(confidence, 4),
                 "classId": class_id,
-                "label": face_model.names.get(class_id, "face"),
+                "label": model.names.get(class_id, "face"),
                 "liveness": liveness
             })
 
@@ -197,6 +217,8 @@ def create_student():
         return jsonify({"success": False, "message": "Unable to crop detected face"}), 400
 
     try:
+        from models.mobilefacenet import build_face_embedding
+
         face_embedding = build_face_embedding(face)
     except FileNotFoundError as error:
         return jsonify({"success": False, "message": str(error)}), 503
