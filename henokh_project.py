@@ -13,7 +13,7 @@ DISTRO_NAME = "Ubuntu-22.04"
 
 PROJECT_FOLDER = "project_henokh"
 
-GIT_REPO_URL = "https://github.com/your-username/your-repo.git"
+GIT_REPO_URL = "https://github.com/andreas114816-spec/project_henokh.git"
 
 PYTHON_VERSION = "3.12.13"
 PYTHON_PREFIX = f"/opt/python-{PYTHON_VERSION}"
@@ -36,13 +36,32 @@ DB_NAME = "henokh_presence"
 DB_USER = "henokh_user"
 DB_PASSWORD = "henokh_password"
 
+LOG_FILE = os.path.join(os.environ.get("TEMP", os.getcwd()), "henokh_project.log")
+
 
 # ============================================================
 # BASIC HELPERS
 # ============================================================
 
+def write_log_file(message=""):
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as file:
+            file.write(f"{message}\n")
+    except Exception:
+        pass
+
+
 def log(message=""):
     print(message, flush=True)
+    write_log_file(message)
+
+
+def pause_before_exit():
+    if is_windows():
+        try:
+            input("\nPress Enter to close this window...")
+        except EOFError:
+            pass
 
 
 def is_windows():
@@ -63,7 +82,8 @@ def relaunch_as_admin():
     if not is_windows():
         return False
 
-    params = subprocess.list2cmdline([os.path.abspath(__file__), *sys.argv[1:]])
+    args = [arg for arg in sys.argv[1:] if arg != "--elevated"]
+    params = subprocess.list2cmdline([os.path.abspath(__file__), "--elevated", *args])
     result = ctypes.windll.shell32.ShellExecuteW(
         None,
         "runas",
@@ -107,7 +127,9 @@ def run_command(command, check=True):
     )
 
     for line in process.stdout:
-        print(line.rstrip(), flush=True)
+        clean_line = line.rstrip()
+        print(clean_line, flush=True)
+        write_log_file(clean_line)
 
     process.wait()
 
@@ -171,7 +193,9 @@ def run_wsl_script(script, user=None, check=True):
     process.stdin.close()
 
     for line in process.stdout:
-        print(line.decode("utf-8", errors="replace").rstrip(), flush=True)
+        clean_line = line.decode("utf-8", errors="replace").rstrip()
+        print(clean_line, flush=True)
+        write_log_file(clean_line)
 
     process.wait()
 
@@ -504,7 +528,10 @@ echo "Database: {DB_NAME}"
 
 def setup_project(clean_project=False):
     if "your-username/your-repo.git" in GIT_REPO_URL:
-        raise RuntimeError("Please edit GIT_REPO_URL in the script first.")
+        raise RuntimeError(
+            "GIT_REPO_URL is still the placeholder value. "
+            "Edit GIT_REPO_URL in henokh_project.py before running install."
+        )
 
     clean_value = "1" if clean_project else "0"
 
@@ -868,6 +895,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Henokh WSL Ubuntu installer and Flask Gunicorn runner"
     )
+    parser.add_argument("--elevated", action="store_true", help=argparse.SUPPRESS)
 
     subparsers = parser.add_subparsers(dest="command")
 
@@ -910,6 +938,10 @@ def main():
     try:
         if args.command == "install":
             install_all(clean_project=args.clean_project)
+            if args.elevated:
+                log()
+                log("Install finished. You can close this Administrator window.")
+                pause_before_exit()
 
         elif args.command == "run":
             run_program()
@@ -926,12 +958,18 @@ def main():
     except KeyboardInterrupt:
         log()
         log("Cancelled by user.")
+        if args.elevated:
+            pause_before_exit()
         sys.exit(1)
 
     except Exception as e:
         log()
         log("ERROR:")
         log(str(e))
+        log()
+        log(f"Log file: {LOG_FILE}")
+        if args.elevated:
+            pause_before_exit()
         sys.exit(1)
 
 
