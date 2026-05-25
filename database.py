@@ -1,7 +1,8 @@
 import os
+from pathlib import Path
 from urllib.parse import quote_plus
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, scoped_session, sessionmaker
 
 
@@ -63,6 +64,8 @@ def get_database_url():
 
 
 DATABASE_URL = get_database_url()
+BASE_DIR = Path(__file__).resolve().parent
+MIGRATIONS_DIR = BASE_DIR / "migrations"
 
 
 class Base(DeclarativeBase):
@@ -82,7 +85,67 @@ def init_db():
 
 
 def migrate_db():
-    init_db()
+    MIGRATIONS_DIR.mkdir(exist_ok=True)
+
+    with engine.begin() as connection:
+        connection.execute(text("""
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                version VARCHAR(255) NOT NULL UNIQUE,
+                applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+
+        applied_versions = {
+            row[0]
+            for row in connection.execute(text("SELECT version FROM schema_migrations"))
+        }
+
+        for migration_path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+            version = migration_path.name
+
+            if version in applied_versions:
+                print(f"Skipping migration: {version}")
+                continue
+
+            print(f"Applying migration: {version}")
+            sql = migration_path.read_text(encoding="utf-8")
+
+            for statement in split_sql_statements(sql):
+                connection.execute(text(statement))
+
+            connection.execute(
+                text("INSERT INTO schema_migrations (version) VALUES (:version)"),
+                {"version": version}
+            )
+
+
+def split_sql_statements(sql):
+    statements = []
+    current = []
+
+    for line in sql.splitlines():
+        stripped = line.strip()
+
+        if not stripped or stripped.startswith("--"):
+            continue
+
+        current.append(line)
+
+        if stripped.endswith(";"):
+            statement = "\n".join(current).strip().rstrip(";").strip()
+
+            if statement:
+                statements.append(statement)
+
+            current = []
+
+    trailing_statement = "\n".join(current).strip()
+
+    if trailing_statement:
+        statements.append(trailing_statement)
+
+    return statements
 
 
 def seed_admin_user(username="admin", password="admin123"):
