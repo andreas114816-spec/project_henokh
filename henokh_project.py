@@ -806,6 +806,49 @@ echo "Database: {DB_NAME}"
     run_wsl_script(script, user="root")
 
 
+def kill_app_port_for_run():
+    log(f"Checking app port {GUNICORN_PORT} before starting program...")
+
+    script = f"""
+set -e
+
+APP_PORT="{GUNICORN_PORT}"
+
+echo "Checking for processes listening on port $APP_PORT..."
+
+PIDS="$(ss -ltnp "sport = :$APP_PORT" 2>/dev/null | sed -n 's/.*pid=\\([0-9]\\+\\).*/\\1/p' | sort -u || true)"
+
+if [ -z "$PIDS" ]; then
+    echo "No process is using port $APP_PORT."
+    exit 0
+fi
+
+echo "Stopping process(es) on port $APP_PORT: $PIDS"
+ps -fp $PIDS || true
+kill $PIDS 2>/dev/null || true
+sleep 2
+
+for PID in $PIDS; do
+    if kill -0 "$PID" 2>/dev/null; then
+        echo "Process $PID still running. Force stopping..."
+        kill -9 "$PID" 2>/dev/null || true
+    fi
+done
+
+REMAINING="$(ss -ltnp "sport = :$APP_PORT" 2>/dev/null | sed -n 's/.*pid=\\([0-9]\\+\\).*/\\1/p' | sort -u || true)"
+
+if [ -n "$REMAINING" ]; then
+    echo "ERROR: Port $APP_PORT is still used by process(es): $REMAINING"
+    ps -fp $REMAINING || true
+    exit 1
+fi
+
+echo "Port $APP_PORT is ready."
+"""
+
+    run_wsl_script(script, user="root")
+
+
 def run_program():
     require_windows()
 
@@ -824,6 +867,7 @@ def run_program():
         )
 
     start_mariadb_for_run()
+    kill_app_port_for_run()
 
     log("Starting project with auto-pull...")
 
