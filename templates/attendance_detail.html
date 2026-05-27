@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Detail</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="min-h-screen bg-gray-100 text-gray-900">
+    <div class="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+        {% include "_sidebar.html" %}
+
+        <main class="px-4 py-6 sm:px-6 lg:px-8">
+            {% macro attendance_pagination(pagination) %}
+                <div class="mt-4 flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                    <form action="{{ url_for('attendance_detail') }}" method="get" class="flex flex-col gap-2 text-sm text-gray-700 sm:flex-row sm:items-center">
+                        <input type="hidden" name="class_id" value="{{ school_class.id }}">
+                        <input type="hidden" name="attendance_date" value="{{ attendance_date.isoformat() }}">
+                        <input type="hidden" name="month" value="{{ month }}">
+                        <input type="hidden" name="page" value="1">
+                        <div class="flex items-center gap-2">
+                            <label for="attendanceSearch">Search</label>
+                            <input
+                                id="attendanceSearch"
+                                name="q"
+                                type="search"
+                                value="{{ pagination.q }}"
+                                class="w-48 rounded-lg border border-gray-300 px-3 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label for="attendancePerPage">Show</label>
+                            <select
+                                id="attendancePerPage"
+                                name="per_page"
+                                class="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                {% for option in pagination.per_page_options %}
+                                    <option value="{{ option }}" {% if pagination.per_page == option %}selected{% endif %}>{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                            <span>data</span>
+                        </div>
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700">
+                            Apply
+                        </button>
+                    </form>
+
+                    <div class="flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:items-center">
+                        <span>Page {{ pagination.page }} of {{ pagination.total_pages }} · {{ pagination.total }} total</span>
+                        <div class="flex gap-2">
+                            <a
+                                href="{{ url_for('attendance_detail', class_id=school_class.id, attendance_date=attendance_date.isoformat(), month=month, page=pagination.prev_page, per_page=pagination.per_page, q=pagination.q) }}"
+                                class="rounded-lg border border-gray-300 px-3 py-1 font-medium text-gray-700 hover:bg-gray-50 {% if not pagination.has_prev %}pointer-events-none opacity-50{% endif %}">
+                                Previous
+                            </a>
+                            <a
+                                href="{{ url_for('attendance_detail', class_id=school_class.id, attendance_date=attendance_date.isoformat(), month=month, page=pagination.next_page, per_page=pagination.per_page, q=pagination.q) }}"
+                                class="rounded-lg border border-gray-300 px-3 py-1 font-medium text-gray-700 hover:bg-gray-50 {% if not pagination.has_next %}pointer-events-none opacity-50{% endif %}">
+                                Next
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endmacro %}
+
+            <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Attendance Detail</h1>
+                    <p class="mt-1 text-sm text-gray-600">
+                        {{ school_class.name }}{% if school_class.class_code %} - {{ school_class.class_code }}{% endif %}
+                        {% if school_class.deleted_at %}(archived){% endif %}
+                        on {{ attendance_date.strftime("%Y-%m-%d") }}
+                    </p>
+                </div>
+
+                <a
+                    href="{{ url_for('dashboard', section='presence', class_id=school_class.id, month=month) }}"
+                    class="rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-800 hover:bg-gray-50">
+                    Back to Calendar
+                </a>
+            </header>
+
+            <section class="rounded-lg bg-white p-5 shadow">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[760px] text-left text-sm">
+                        <thead class="border-b text-xs uppercase text-gray-500">
+                            <tr>
+                                <th class="py-3 pr-4">Student</th>
+                                <th class="py-3 pr-4">NIM</th>
+                                <th class="py-3 pr-4">Status</th>
+                                <th class="py-3 pr-4">Presence Datetime</th>
+                                <th class="py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            {% for row in detail_rows %}
+                                {% set attendance = row.attendance %}
+                                {% set form_id = "attendanceForm" ~ row.student.id %}
+                                <tr>
+                                    <td class="py-3 pr-4 font-medium">{{ row.student.name }}</td>
+                                    <td class="py-3 pr-4">{{ row.student.nim }}</td>
+                                    <td class="py-3 pr-4">
+                                        <select
+                                            form="{{ form_id }}"
+                                            name="status"
+                                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                            {% set current_status = attendance.status if attendance else "absen" %}
+                                            <option value="presence" {% if current_status == "presence" %}selected{% endif %}>Presence</option>
+                                            <option value="late" {% if current_status == "late" %}selected{% endif %}>Late</option>
+                                            <option value="absen" {% if current_status == "absen" %}selected{% endif %}>Absent</option>
+                                        </select>
+                                    </td>
+                                    <td class="py-3 pr-4">
+                                        <input
+                                            form="{{ form_id }}"
+                                            name="presence_at"
+                                            type="datetime-local"
+                                            value="{% if attendance %}{{ attendance.presence_at.strftime('%Y-%m-%dT%H:%M') }}{% else %}{{ attendance_date.isoformat() }}T00:00{% endif %}"
+                                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <form id="{{ form_id }}" action="{{ url_for('update_attendance') }}" method="post">
+                                            <input type="hidden" name="class_id" value="{{ school_class.id }}">
+                                            <input type="hidden" name="student_id" value="{{ row.student.id }}">
+                                            <input type="hidden" name="attendance_date" value="{{ attendance_date.isoformat() }}">
+                                            <input type="hidden" name="month" value="{{ month }}">
+                                            <input type="hidden" name="page" value="{{ pagination.page }}">
+                                            <input type="hidden" name="per_page" value="{{ pagination.per_page }}">
+                                            <input type="hidden" name="q" value="{{ pagination.q }}">
+                                            <button
+                                                type="submit"
+                                                class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                                Save
+                                            </button>
+                                        </form>
+                                        {% if attendance %}
+                                            <form
+                                                action="{{ url_for('delete_attendance') }}"
+                                                method="post"
+                                                class="mt-2"
+                                                data-confirm-title="Remove Attendance"
+                                                data-confirm-message="Remove this recorded attendance? This cannot be undone."
+                                                data-confirm-action="Remove">
+                                                <input type="hidden" name="class_id" value="{{ school_class.id }}">
+                                                <input type="hidden" name="student_id" value="{{ row.student.id }}">
+                                                <input type="hidden" name="attendance_date" value="{{ attendance_date.isoformat() }}">
+                                                <input type="hidden" name="month" value="{{ month }}">
+                                                <input type="hidden" name="page" value="{{ pagination.page }}">
+                                                <input type="hidden" name="per_page" value="{{ pagination.per_page }}">
+                                                <input type="hidden" name="q" value="{{ pagination.q }}">
+                                                <button
+                                                    type="submit"
+                                                    class="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+                                                    Remove
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="py-6 text-center text-gray-500">No students assigned to this class.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {{ attendance_pagination(pagination) }}
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/confirm-modal.js') }}"></script>
+</body>
+</html>

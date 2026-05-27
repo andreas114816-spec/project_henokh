@@ -5,6 +5,7 @@ os.environ.setdefault("YOLO_CONFIG_DIR", "/tmp")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 import calendar
+import math
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -16,7 +17,8 @@ import base64
 import cv2
 import numpy as np
 from database import SessionLocal, init_db, migrate_db, seed_admin_user
-from models.db_models import AppSetting, Attendance, SchoolClass, Student, Teacher, User
+from models.db_models import AppSetting, Attendance, SchoolClass, Student, Teacher, User, class_students
+from sqlalchemy import or_
 from sqlalchemy.orm import selectinload
 
 app = Flask(__name__)
@@ -31,6 +33,7 @@ APP_TIMEZONE = ZoneInfo(os.getenv("APP_TIMEZONE", "Asia/Jakarta"))
 
 face_model = None
 spoof_model = None
+PER_PAGE_OPTIONS = (10, 25, 50, 100)
 
 
 class ModelUnavailableError(RuntimeError):
@@ -76,6 +79,44 @@ def parse_datetime_local_field(value):
 
 def current_app_datetime():
     return datetime.now(APP_TIMEZONE).replace(tzinfo=None)
+
+
+def get_pagination_params(default_per_page=10):
+    page = request.args.get("page", default=1, type=int)
+    per_page = request.args.get("per_page", default=default_per_page, type=int)
+
+    if page < 1:
+        page = 1
+
+    if per_page not in PER_PAGE_OPTIONS:
+        per_page = default_per_page
+
+    return page, per_page
+
+
+def get_search_query():
+    return (request.args.get("q") or "").strip()
+
+
+def paginate_query(query, page, per_page, search_query=""):
+    total = query.enable_eagerloads(False).count()
+    total_pages = max(1, math.ceil(total / per_page)) if total else 1
+    page = min(max(page, 1), total_pages)
+    items = query.limit(per_page).offset((page - 1) * per_page).all()
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "has_prev": page > 1,
+        "has_next": page < total_pages,
+        "prev_page": page - 1,
+        "next_page": page + 1,
+        "per_page_options": PER_PAGE_OPTIONS,
+        "q": search_query,
+    }
 
 
 def login_required(view):
@@ -127,10 +168,17 @@ def set_anti_spoof_enabled(enabled):
         SessionLocal.remove()
 
 
+def build_archived_cleanup_counts(session):
+    return {
+        "students": session.query(Student).filter(Student.deleted_at.is_not(None)).count(),
+        "teachers": session.query(Teacher).filter(Teacher.deleted_at.is_not(None)).count(),
+        "classes": session.query(SchoolClass).filter(SchoolClass.deleted_at.is_not(None)).count(),
+    }
+
+
 def build_presence_dashboard_context(session):
     today = current_app_datetime().date()
     selected_class_id = request.args.get("class_id", type=int)
-    selected_date = parse_date_field(request.args.get("date"))
     month_value = request.args.get("month", "")
 
     try:
@@ -141,7 +189,7 @@ def build_presence_dashboard_context(session):
     presence_classes = (
         session.query(SchoolClass)
         .options(selectinload(SchoolClass.students))
-        .order_by(SchoolClass.name.asc())
+        .order_by(SchoolClass.deleted_at.asc(), SchoolClass.name.asc())
         .all()
     )
 
@@ -155,9 +203,6 @@ def build_presence_dashboard_context(session):
             (school_class for school_class in presence_classes if school_class.id == selected_class_id),
             None
         )
-
-    if selected_date is None:
-        selected_date = today if today.year == month_start.year and today.month == month_start.month else None
 
     month_end_day = calendar.monthrange(month_start.year, month_start.month)[1]
     month_end = month_start.replace(day=month_end_day)
@@ -194,26 +239,11 @@ def build_presence_dashboard_context(session):
             {
                 "date": day,
                 "in_month": day.month == month_start.month,
+                "is_today": day == today,
                 "summary": summaries.get(day, {"presence": 0, "late": 0, "absen": 0})
             }
             for day in week
         ])
-
-    detail_rows = []
-
-    if selected_class and selected_date:
-        attendance_by_student_id = {
-            attendance.student_id: attendance
-            for attendance in session.query(Attendance)
-            .filter_by(class_id=selected_class.id, attendance_date=selected_date)
-            .all()
-        }
-
-        for student in selected_class.students:
-            detail_rows.append({
-                "student": student,
-                "attendance": attendance_by_student_id.get(student.id)
-            })
 
     previous_month = (month_start.replace(day=1) - timedelta(days=1)).replace(day=1)
     next_month = (
@@ -228,8 +258,6 @@ def build_presence_dashboard_context(session):
         "previous_month": previous_month,
         "next_month": next_month,
         "calendar_weeks": calendar_weeks,
-        "selected_date": selected_date,
-        "detail_rows": detail_rows,
     }
 
 
@@ -315,7 +343,10 @@ def logout():
 @login_required
 def dashboard():
     active_section = request.args.get("section", "overview")
-    allowed_sections = {"overview", "students", "teachers", "classes", "users", "presence", "settings"}
+    allowed_sections = {"overview", "students", "teachers", "classes", "presence", "settings"}
+
+    if active_section == "users":
+        active_section = "settings"
 
     if active_section not in allowed_sections:
         active_section = "overview"
@@ -323,21 +354,67 @@ def dashboard():
     session = SessionLocal()
 
     try:
-        students = session.query(Student).order_by(Student.created_at.desc()).all()
-        teachers = session.query(Teacher).order_by(Teacher.created_at.desc()).all()
-        classes = (
+        page, per_page = get_pagination_params()
+        search_query = get_search_query()
+        search_pattern = f"%{search_query}%"
+        student_query = (
+            session.query(Student)
+            .filter(Student.deleted_at.is_(None))
+            .order_by(Student.created_at.desc())
+        )
+        teacher_query = (
+            session.query(Teacher)
+            .filter(Teacher.deleted_at.is_(None))
+            .order_by(Teacher.created_at.desc())
+        )
+        class_query = (
             session.query(SchoolClass)
             .options(
                 selectinload(SchoolClass.teacher),
                 selectinload(SchoolClass.students)
             )
+            .filter(SchoolClass.deleted_at.is_(None))
             .order_by(SchoolClass.created_at.desc())
-            .all()
         )
-        users = session.query(User).order_by(User.created_at.desc()).all()
+        user_query = session.query(User).order_by(User.created_at.desc())
+
+        if search_query:
+            student_query = student_query.filter(or_(
+                Student.name.ilike(search_pattern),
+                Student.nim.ilike(search_pattern)
+            ))
+            teacher_query = teacher_query.filter(or_(
+                Teacher.name.ilike(search_pattern),
+                Teacher.nip.ilike(search_pattern),
+                Teacher.subject.ilike(search_pattern)
+            ))
+            class_query = class_query.filter(or_(
+                SchoolClass.name.ilike(search_pattern),
+                SchoolClass.class_code.ilike(search_pattern),
+                SchoolClass.teacher.has(Teacher.name.ilike(search_pattern))
+            ))
+            user_query = user_query.filter(User.username.ilike(search_pattern))
+
+        student_pagination = paginate_query(student_query, page, per_page, search_query)
+        teacher_pagination = paginate_query(teacher_query, page, per_page, search_query)
+        class_pagination = paginate_query(class_query, page, per_page, search_query)
+        user_pagination = paginate_query(user_query, page, per_page, search_query)
+        student_count = student_pagination["total"]
+        teacher_count = teacher_pagination["total"]
+        class_count = class_pagination["total"]
+        user_count = user_pagination["total"]
+        students = student_pagination["items"]
+        teachers = teacher_pagination["items"]
+        classes = class_pagination["items"]
+        users = user_pagination["items"]
         presence_context = (
             build_presence_dashboard_context(session)
             if active_section == "presence"
+            else None
+        )
+        archived_cleanup_counts = (
+            build_archived_cleanup_counts(session)
+            if active_section == "settings"
             else None
         )
 
@@ -347,11 +424,20 @@ def dashboard():
             teachers=teachers,
             classes=classes,
             users=users,
+            student_count=student_count,
+            teacher_count=teacher_count,
+            class_count=class_count,
+            user_count=user_count,
+            student_pagination=student_pagination,
+            teacher_pagination=teacher_pagination,
+            class_pagination=class_pagination,
+            user_pagination=user_pagination,
             active_section=active_section,
             current_user_id=flask_session.get("user_id"),
             username=flask_session.get("username"),
             anti_spoof_enabled=is_anti_spoof_enabled(),
-            presence_context=presence_context
+            presence_context=presence_context,
+            archived_cleanup_counts=archived_cleanup_counts
         )
     finally:
         SessionLocal.remove()
@@ -366,9 +452,12 @@ def update_attendance():
     status = (request.form.get("status") or "").strip()
     presence_at = parse_datetime_local_field(request.form.get("presence_at"))
     month = request.form.get("month") or (attendance_date.strftime("%Y-%m") if attendance_date else "")
+    page = parse_optional_int(request.form.get("page")) or 1
+    per_page = parse_optional_int(request.form.get("per_page")) or 10
+    search_query = (request.form.get("q") or "").strip()
 
     if not class_id or not student_id or not attendance_date or status not in {"presence", "late", "absen"}:
-        return redirect(url_for("dashboard", section="presence", class_id=class_id or "", month=month))
+        return redirect(url_for("dashboard", section="presence", class_id=class_id or "", month=month, page=page, per_page=per_page, q=search_query))
 
     session = SessionLocal()
 
@@ -404,12 +493,136 @@ def update_attendance():
         SessionLocal.remove()
 
     return redirect(url_for(
-        "dashboard",
-        section="presence",
+        "attendance_detail",
         class_id=class_id,
+        attendance_date=attendance_date.isoformat(),
         month=month,
-        date=attendance_date.isoformat()
+        page=page,
+        per_page=per_page,
+        q=search_query
     ))
+
+
+@app.route("/attendance/delete", methods=["POST"])
+@login_required
+def delete_attendance():
+    class_id = parse_optional_int(request.form.get("class_id"))
+    student_id = parse_optional_int(request.form.get("student_id"))
+    attendance_date = parse_date_field(request.form.get("attendance_date"))
+    month = request.form.get("month") or (attendance_date.strftime("%Y-%m") if attendance_date else "")
+    page = parse_optional_int(request.form.get("page")) or 1
+    per_page = parse_optional_int(request.form.get("per_page")) or 10
+    search_query = (request.form.get("q") or "").strip()
+
+    if not class_id or not student_id or not attendance_date:
+        return redirect(url_for("dashboard", section="presence", class_id=class_id or "", month=month, page=page, per_page=per_page, q=search_query))
+
+    session = SessionLocal()
+
+    try:
+        attendance = (
+            session.query(Attendance)
+            .filter_by(
+                class_id=class_id,
+                student_id=student_id,
+                attendance_date=attendance_date
+            )
+            .one_or_none()
+        )
+
+        if attendance:
+            session.delete(attendance)
+            session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        SessionLocal.remove()
+
+    return redirect(url_for(
+        "attendance_detail",
+        class_id=class_id,
+        attendance_date=attendance_date.isoformat(),
+        month=month,
+        page=page,
+        per_page=per_page,
+        q=search_query
+    ))
+
+
+@app.route("/attendance/detail")
+@login_required
+def attendance_detail():
+    class_id = request.args.get("class_id", type=int)
+    attendance_date = parse_date_field(request.args.get("attendance_date"))
+    month = request.args.get("month") or (attendance_date.strftime("%Y-%m") if attendance_date else "")
+    page, per_page = get_pagination_params()
+    search_query = get_search_query()
+    search_pattern = f"%{search_query}%"
+
+    if not class_id or not attendance_date:
+        return redirect(url_for("dashboard", section="presence", month=month))
+
+    session = SessionLocal()
+
+    try:
+        school_class = (
+            session.query(SchoolClass)
+            .options(selectinload(SchoolClass.students))
+            .filter_by(id=class_id)
+            .one_or_none()
+        )
+
+        if school_class is None:
+            return redirect(url_for("dashboard", section="presence", month=month))
+
+        student_query = (
+            session.query(Student)
+            .join(class_students, Student.id == class_students.c.student_id)
+            .filter(class_students.c.class_id == class_id)
+            .order_by(Student.name.asc())
+        )
+
+        if search_query:
+            student_query = student_query.filter(or_(
+                Student.name.ilike(search_pattern),
+                Student.nim.ilike(search_pattern)
+            ))
+
+        student_pagination = paginate_query(student_query, page, per_page, search_query)
+        page_student_ids = [student.id for student in student_pagination["items"]]
+
+        attendance_by_student_id = {
+            attendance.student_id: attendance
+            for attendance in session.query(Attendance)
+            .filter(
+                Attendance.class_id == class_id,
+                Attendance.attendance_date == attendance_date,
+                Attendance.student_id.in_(page_student_ids)
+            )
+            .all()
+        } if page_student_ids else {}
+
+        detail_rows = [
+            {
+                "student": student,
+                "attendance": attendance_by_student_id.get(student.id)
+            }
+            for student in student_pagination["items"]
+        ]
+
+        return render_template(
+            "attendance_detail.html",
+            active_section="presence",
+            username=flask_session.get("username"),
+            school_class=school_class,
+            attendance_date=attendance_date,
+            month=month,
+            detail_rows=detail_rows,
+            pagination=student_pagination
+        )
+    finally:
+        SessionLocal.remove()
 
 
 @app.route("/settings/anti-spoof", methods=["POST"])
@@ -419,9 +632,46 @@ def update_anti_spoof_setting():
     return redirect(url_for("dashboard", section="settings"))
 
 
+@app.route("/settings/cleanup-archived", methods=["POST"])
+@login_required
+def cleanup_archived_data():
+    session = SessionLocal()
+
+    try:
+        counts = build_archived_cleanup_counts(session)
+        archived_teacher_ids = [
+            teacher_id
+            for (teacher_id,) in session.query(Teacher.id)
+            .filter(Teacher.deleted_at.is_not(None))
+            .all()
+        ]
+
+        if archived_teacher_ids:
+            session.query(SchoolClass).filter(
+                SchoolClass.teacher_id.in_(archived_teacher_ids)
+            ).update(
+                {SchoolClass.teacher_id: None},
+                synchronize_session=False
+            )
+
+        session.query(SchoolClass).filter(SchoolClass.deleted_at.is_not(None)).delete(synchronize_session=False)
+        session.query(Student).filter(Student.deleted_at.is_not(None)).delete(synchronize_session=False)
+        session.query(Teacher).filter(Teacher.deleted_at.is_not(None)).delete(synchronize_session=False)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        SessionLocal.remove()
+
+    total = counts["students"] + counts["teachers"] + counts["classes"]
+    return redirect(url_for("dashboard", section="settings", cleanup=f"deleted-{total}"))
+
+
 @app.route("/teachers", methods=["POST"])
 @login_required
 def create_teacher():
+    teacher_id = parse_optional_int(request.form.get("teacher_id"))
     name = request.form.get("name", "").strip()
     nip = request.form.get("nip", "").strip()
     subject = request.form.get("subject", "").strip() or None
@@ -432,15 +682,32 @@ def create_teacher():
     session = SessionLocal()
 
     try:
-        teacher = session.query(Teacher).filter_by(nip=nip).one_or_none()
+        teacher = session.get(Teacher, teacher_id) if teacher_id else None
+
+        if teacher_id and teacher is None:
+            return redirect(url_for("dashboard", section="teachers"))
+
+        if teacher_id:
+            duplicate_teacher = (
+                session.query(Teacher)
+                .filter(Teacher.nip == nip, Teacher.id != teacher_id)
+                .one_or_none()
+            )
+
+            if duplicate_teacher:
+                return redirect(url_for("edit_teacher", teacher_id=teacher_id, error="teacher"))
+        else:
+            teacher = session.query(Teacher).filter_by(nip=nip).one_or_none()
 
         if teacher is None:
             teacher = Teacher(name=name, nip=nip, subject=subject)
             session.add(teacher)
         else:
             teacher.name = name
+            teacher.nip = nip
             teacher.subject = subject
 
+        teacher.deleted_at = None
         session.commit()
     except Exception:
         session.rollback()
@@ -458,7 +725,7 @@ def create_user():
     password = request.form.get("password", "")
 
     if not username or not password:
-        return redirect(url_for("dashboard", section="users", error="user"))
+        return redirect(url_for("dashboard", section="settings", error="user"))
 
     session = SessionLocal()
 
@@ -477,12 +744,13 @@ def create_user():
     finally:
         SessionLocal.remove()
 
-    return redirect(url_for("dashboard", section="users"))
+    return redirect(url_for("dashboard", section="settings"))
 
 
 @app.route("/classes", methods=["POST"])
 @login_required
 def create_class():
+    class_id = parse_optional_int(request.form.get("class_id"))
     name = request.form.get("name", "").strip()
     class_code = request.form.get("class_code", "").strip()
     teacher_id = parse_optional_int(request.form.get("teacher_id"))
@@ -498,19 +766,38 @@ def create_class():
     session = SessionLocal()
 
     try:
-        school_class = session.query(SchoolClass).filter_by(class_code=class_code).one_or_none()
+        school_class = session.get(SchoolClass, class_id) if class_id else None
+
+        if class_id and school_class is None:
+            return redirect(url_for("dashboard", section="classes"))
+
+        duplicate_class = (
+            session.query(SchoolClass)
+            .filter(SchoolClass.class_code == class_code, SchoolClass.id != class_id)
+            .one_or_none()
+            if class_id
+            else session.query(SchoolClass).filter_by(class_code=class_code).one_or_none()
+        )
+
+        if duplicate_class:
+            if class_id:
+                session.rollback()
+                return redirect(url_for("edit_class", class_id=class_id, error="class"))
+
+            school_class = duplicate_class
 
         if school_class is None:
             school_class = SchoolClass(name=name, class_code=class_code)
             session.add(school_class)
         else:
             school_class.name = name
+            school_class.class_code = class_code
 
+        school_class.deleted_at = None
         school_class.start_time = start_time
         school_class.end_time = end_time
         school_class.start_presence = start_presence
         school_class.end_presence = end_presence
-        school_class.teacher_id = teacher_id
         school_class.teacher = session.get(Teacher, teacher_id) if teacher_id else None
 
         selected_student_ids = [
@@ -545,7 +832,7 @@ def delete_class(class_id):
         school_class = session.get(SchoolClass, class_id)
 
         if school_class:
-            session.delete(school_class)
+            school_class.deleted_at = current_app_datetime()
             session.commit()
     except Exception:
         session.rollback()
@@ -565,7 +852,7 @@ def delete_student(student_id):
         student = session.get(Student, student_id)
 
         if student:
-            session.delete(student)
+            student.deleted_at = current_app_datetime()
             session.commit()
     except Exception:
         session.rollback()
@@ -585,7 +872,7 @@ def delete_teacher(teacher_id):
         teacher = session.get(Teacher, teacher_id)
 
         if teacher:
-            session.delete(teacher)
+            teacher.deleted_at = current_app_datetime()
             session.commit()
     except Exception:
         session.rollback()
@@ -600,7 +887,7 @@ def delete_teacher(teacher_id):
 @login_required
 def delete_user(user_id):
     if user_id == flask_session.get("user_id"):
-        return redirect(url_for("dashboard", section="users"))
+        return redirect(url_for("dashboard", section="settings"))
 
     session = SessionLocal()
 
@@ -616,25 +903,65 @@ def delete_user(user_id):
     finally:
         SessionLocal.remove()
 
-    return redirect(url_for("dashboard", section="users"))
+    return redirect(url_for("dashboard", section="settings"))
 
 
 @app.route("/students/new")
 @login_required
 def new_student():
-    return render_template("student_form.html", active_section="students")
+    return render_template("student_form.html", active_section="students", student=None)
+
+
+@app.route("/students/<int:student_id>/edit")
+@login_required
+def edit_student(student_id):
+    session = SessionLocal()
+
+    try:
+        student = (
+            session.query(Student)
+            .filter(Student.id == student_id, Student.deleted_at.is_(None))
+            .one_or_none()
+        )
+
+        if student is None:
+            return redirect(url_for("dashboard", section="students"))
+
+        return render_template("student_form.html", active_section="students", student=student)
+    finally:
+        SessionLocal.remove()
 
 
 @app.route("/teachers/new")
 @login_required
 def new_teacher():
-    return render_template("teacher_form.html", active_section="teachers")
+    return render_template("teacher_form.html", active_section="teachers", teacher=None)
+
+
+@app.route("/teachers/<int:teacher_id>/edit")
+@login_required
+def edit_teacher(teacher_id):
+    session = SessionLocal()
+
+    try:
+        teacher = (
+            session.query(Teacher)
+            .filter(Teacher.id == teacher_id, Teacher.deleted_at.is_(None))
+            .one_or_none()
+        )
+
+        if teacher is None:
+            return redirect(url_for("dashboard", section="teachers"))
+
+        return render_template("teacher_form.html", active_section="teachers", teacher=teacher)
+    finally:
+        SessionLocal.remove()
 
 
 @app.route("/users/new")
 @login_required
 def new_user():
-    return render_template("user_form.html", active_section="users")
+    return render_template("user_form.html", active_section="settings")
 
 
 @app.route("/classes/new")
@@ -643,12 +970,64 @@ def new_class():
     session = SessionLocal()
 
     try:
-        students = session.query(Student).order_by(Student.name.asc()).all()
-        teachers = session.query(Teacher).order_by(Teacher.name.asc()).all()
+        students = (
+            session.query(Student)
+            .filter(Student.deleted_at.is_(None))
+            .order_by(Student.name.asc())
+            .all()
+        )
+        teachers = (
+            session.query(Teacher)
+            .filter(Teacher.deleted_at.is_(None))
+            .order_by(Teacher.name.asc())
+            .all()
+        )
 
         return render_template(
             "class_form.html",
             active_section="classes",
+            school_class=None,
+            students=students,
+            teachers=teachers
+        )
+    finally:
+        SessionLocal.remove()
+
+
+@app.route("/classes/<int:class_id>/edit")
+@login_required
+def edit_class(class_id):
+    session = SessionLocal()
+
+    try:
+        school_class = (
+            session.query(SchoolClass)
+            .options(selectinload(SchoolClass.teacher), selectinload(SchoolClass.students))
+            .filter(SchoolClass.id == class_id, SchoolClass.deleted_at.is_(None))
+            .one_or_none()
+        )
+
+        if school_class is None:
+            return redirect(url_for("dashboard", section="classes"))
+
+        selected_student_ids = {student.id for student in school_class.students}
+        students = (
+            session.query(Student)
+            .filter((Student.deleted_at.is_(None)) | (Student.id.in_(selected_student_ids)))
+            .order_by(Student.name.asc())
+            .all()
+        )
+        teachers = (
+            session.query(Teacher)
+            .filter((Teacher.deleted_at.is_(None)) | (Teacher.id == school_class.teacher_id))
+            .order_by(Teacher.name.asc())
+            .all()
+        )
+
+        return render_template(
+            "class_form.html",
+            active_section="classes",
+            school_class=school_class,
             students=students,
             teachers=teachers
         )
@@ -663,7 +1042,12 @@ def presence():
     session = SessionLocal()
 
     try:
-        classes = session.query(SchoolClass).order_by(SchoolClass.name.asc()).all()
+        classes = (
+            session.query(SchoolClass)
+            .filter(SchoolClass.deleted_at.is_(None))
+            .order_by(SchoolClass.name.asc())
+            .all()
+        )
     except Exception:
         classes = []
     finally:
@@ -859,9 +1243,17 @@ def identify_detected_faces(frame, detections, class_id=None, record_attendance=
 
         if class_id:
             school_class = session.get(SchoolClass, class_id)
-            students = school_class.students if school_class else []
+            students = (
+                [
+                    student
+                    for student in school_class.students
+                    if student.deleted_at is None
+                ]
+                if school_class and school_class.deleted_at is None
+                else []
+            )
         else:
-            students = session.query(Student).all()
+            students = session.query(Student).filter(Student.deleted_at.is_(None)).all()
 
         known_students = [
             (student, np.asarray(student.face_embeddings, dtype="float32"))
@@ -1010,60 +1402,85 @@ def create_student():
 
     name = data.get("name", "").strip()
     nim = data.get("nim", "").strip()
+    student_id = parse_optional_int(data.get("studentId"))
     image_data = data.get("image", "")
 
-    if not name or not nim or not image_data:
+    if not name or not nim:
         return jsonify({
             "success": False,
-            "message": "Name, NIM, and face image are required"
+            "message": "Name and NIM are required"
         }), 400
-
-    frame = decode_image_data(image_data)
-
-    if frame is None:
-        return jsonify({"success": False, "message": "Invalid face image"}), 400
-
-    anti_spoof_enabled = is_anti_spoof_enabled()
-
-    try:
-        detections = detect_faces(frame, anti_spoof_enabled=anti_spoof_enabled)
-    except ModelUnavailableError as error:
-        return jsonify({"success": False, "message": str(error)}), 503
-
-    if len(detections) != 1:
-        return jsonify({
-            "success": False,
-            "message": "Capture exactly one face before saving"
-        }), 400
-
-    detection = detections[0]
-    real_score = (detection.get("liveness") or {}).get("scores", {}).get("real", 0)
-
-    if anti_spoof_enabled and real_score < 0.5:
-        return jsonify({
-            "success": False,
-            "message": "Face must pass real-person check before saving"
-        }), 400
-
-    face = crop_detected_face(frame, detection)
-
-    if face is None:
-        return jsonify({"success": False, "message": "Unable to crop detected face"}), 400
-
-    try:
-        from models.mobilefacenet import build_face_embedding
-
-        face_embedding = build_face_embedding(face)
-    except FileNotFoundError as error:
-        face_embedding = None
-        embedding_warning = str(error)
-    else:
-        embedding_warning = None
 
     session = SessionLocal()
 
     try:
-        student = session.query(Student).filter_by(nim=nim).one_or_none()
+        student = session.get(Student, student_id) if student_id else None
+
+        if student_id and (student is None or student.deleted_at is not None):
+            return jsonify({"success": False, "message": "Student not found"}), 404
+
+        duplicate_student = (
+            session.query(Student)
+            .filter(Student.nim == nim, Student.id != student_id)
+            .one_or_none()
+            if student_id
+            else session.query(Student).filter_by(nim=nim).one_or_none()
+        )
+
+        if duplicate_student:
+            if student_id:
+                return jsonify({"success": False, "message": "NIM is already used by another student"}), 400
+
+            student = duplicate_student
+
+        if student is None and not image_data:
+            return jsonify({
+                "success": False,
+                "message": "Face image is required for new students"
+            }), 400
+
+        face_embedding = None
+        embedding_warning = None
+
+        if image_data:
+            frame = decode_image_data(image_data)
+
+            if frame is None:
+                return jsonify({"success": False, "message": "Invalid face image"}), 400
+
+            anti_spoof_enabled = is_anti_spoof_enabled()
+
+            try:
+                detections = detect_faces(frame, anti_spoof_enabled=anti_spoof_enabled)
+            except ModelUnavailableError as error:
+                return jsonify({"success": False, "message": str(error)}), 503
+
+            if len(detections) != 1:
+                return jsonify({
+                    "success": False,
+                    "message": "Capture exactly one face before saving"
+                }), 400
+
+            detection = detections[0]
+            real_score = (detection.get("liveness") or {}).get("scores", {}).get("real", 0)
+
+            if anti_spoof_enabled and real_score < 0.5:
+                return jsonify({
+                    "success": False,
+                    "message": "Face must pass real-person check before saving"
+                }), 400
+
+            face = crop_detected_face(frame, detection)
+
+            if face is None:
+                return jsonify({"success": False, "message": "Unable to crop detected face"}), 400
+
+            try:
+                from models.mobilefacenet import build_face_embedding
+
+                face_embedding = build_face_embedding(face)
+            except FileNotFoundError as error:
+                embedding_warning = str(error)
 
         if student is None:
             student = Student(name=name, nim=nim)
@@ -1071,7 +1488,10 @@ def create_student():
             action = "created"
         else:
             student.name = name
+            student.nim = nim
             action = "updated"
+
+        student.deleted_at = None
 
         if face_embedding is not None:
             student.set_face_embedding(face_embedding)

@@ -14,6 +14,57 @@
         {% include "_sidebar.html" %}
 
         <main class="px-4 py-6 sm:px-6 lg:px-8">
+            {% macro dashboard_pagination(pagination, section) %}
+                <div class="mt-4 flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                    <form action="{{ url_for('dashboard') }}" method="get" class="flex flex-col gap-2 text-sm text-gray-700 sm:flex-row sm:items-center">
+                        <input type="hidden" name="section" value="{{ section }}">
+                        <input type="hidden" name="page" value="1">
+                        <div class="flex items-center gap-2">
+                            <label for="{{ section }}Search">Search</label>
+                            <input
+                                id="{{ section }}Search"
+                                name="q"
+                                type="search"
+                                value="{{ pagination.q }}"
+                                class="w-48 rounded-lg border border-gray-300 px-3 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label for="{{ section }}PerPage">Show</label>
+                            <select
+                                id="{{ section }}PerPage"
+                                name="per_page"
+                                class="rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                {% for option in pagination.per_page_options %}
+                                    <option value="{{ option }}" {% if pagination.per_page == option %}selected{% endif %}>{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                            <span>data</span>
+                        </div>
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700">
+                            Apply
+                        </button>
+                    </form>
+
+                    <div class="flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:items-center">
+                        <span>Page {{ pagination.page }} of {{ pagination.total_pages }} · {{ pagination.total }} total</span>
+                        <div class="flex gap-2">
+                            <a
+                                href="{{ url_for('dashboard', section=section, page=pagination.prev_page, per_page=pagination.per_page, q=pagination.q) }}"
+                                class="rounded-lg border border-gray-300 px-3 py-1 font-medium text-gray-700 hover:bg-gray-50 {% if not pagination.has_prev %}pointer-events-none opacity-50{% endif %}">
+                                Previous
+                            </a>
+                            <a
+                                href="{{ url_for('dashboard', section=section, page=pagination.next_page, per_page=pagination.per_page, q=pagination.q) }}"
+                                class="rounded-lg border border-gray-300 px-3 py-1 font-medium text-gray-700 hover:bg-gray-50 {% if not pagination.has_next %}pointer-events-none opacity-50{% endif %}">
+                                Next
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endmacro %}
+
             {% if active_section == "overview" %}
                 <header class="mb-6">
                     <h2 class="text-3xl font-bold">Overview</h2>
@@ -22,22 +73,22 @@
                 <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <a href="{{ url_for('dashboard', section='students') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
                         <p class="text-sm font-medium text-gray-500">Students</p>
-                        <p class="mt-2 text-3xl font-bold">{{ students|length }}</p>
+                        <p class="mt-2 text-3xl font-bold">{{ student_count }}</p>
                     </a>
 
                     <a href="{{ url_for('dashboard', section='teachers') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
                         <p class="text-sm font-medium text-gray-500">Teachers</p>
-                        <p class="mt-2 text-3xl font-bold">{{ teachers|length }}</p>
+                        <p class="mt-2 text-3xl font-bold">{{ teacher_count }}</p>
                     </a>
 
                     <a href="{{ url_for('dashboard', section='classes') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
                         <p class="text-sm font-medium text-gray-500">Classes</p>
-                        <p class="mt-2 text-3xl font-bold">{{ classes|length }}</p>
+                        <p class="mt-2 text-3xl font-bold">{{ class_count }}</p>
                     </a>
 
-                    <a href="{{ url_for('dashboard', section='users') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
+                    <a href="{{ url_for('dashboard', section='settings') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
                         <p class="text-sm font-medium text-gray-500">Users</p>
-                        <p class="mt-2 text-3xl font-bold">{{ users|length }}</p>
+                        <p class="mt-2 text-3xl font-bold">{{ user_count }}</p>
                     </a>
                 </section>
             {% endif %}
@@ -46,7 +97,7 @@
                 <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 class="text-3xl font-bold">Student List</h2>
-                        <p class="mt-1 text-sm text-gray-600">{{ students|length }} registered student{{ '' if students|length == 1 else 's' }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ student_count }} registered student{{ '' if student_count == 1 else 's' }}</p>
                     </div>
 
                     <a
@@ -74,9 +125,18 @@
                                         <td class="py-3 pr-4">{{ student.nim }}</td>
                                         <td class="py-3 pr-4">{{ "Saved" if student.face_embeddings else "Missing" }}</td>
                                         <td class="py-3 text-right">
-                                            <form action="{{ url_for('delete_student', student_id=student.id) }}" method="post">
+                                            <a href="{{ url_for('edit_student', student_id=student.id) }}" class="mr-3 text-sm font-medium text-blue-600 hover:text-blue-700">
+                                                Edit
+                                            </a>
+                                            <form
+                                                action="{{ url_for('delete_student', student_id=student.id) }}"
+                                                method="post"
+                                                class="inline"
+                                                data-confirm-title="Archive Student"
+                                                data-confirm-message="Archive this student? They will be hidden from active lists, but attendance history stays available."
+                                                data-confirm-action="Archive">
                                                 <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
-                                                    Delete
+                                                    Archive
                                                 </button>
                                             </form>
                                         </td>
@@ -89,6 +149,7 @@
                             </tbody>
                         </table>
                     </div>
+                    {{ dashboard_pagination(student_pagination, "students") }}
                 </section>
             {% endif %}
 
@@ -96,7 +157,7 @@
                 <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 class="text-3xl font-bold">Teacher List</h2>
-                        <p class="mt-1 text-sm text-gray-600">{{ teachers|length }} registered teacher{{ '' if teachers|length == 1 else 's' }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ teacher_count }} registered teacher{{ '' if teacher_count == 1 else 's' }}</p>
                     </div>
 
                     <a
@@ -124,9 +185,18 @@
                                         <td class="py-3 pr-4">{{ teacher.nip }}</td>
                                         <td class="py-3 pr-4">{{ teacher.subject or "-" }}</td>
                                         <td class="py-3 text-right">
-                                            <form action="{{ url_for('delete_teacher', teacher_id=teacher.id) }}" method="post">
+                                            <a href="{{ url_for('edit_teacher', teacher_id=teacher.id) }}" class="mr-3 text-sm font-medium text-blue-600 hover:text-blue-700">
+                                                Edit
+                                            </a>
+                                            <form
+                                                action="{{ url_for('delete_teacher', teacher_id=teacher.id) }}"
+                                                method="post"
+                                                class="inline"
+                                                data-confirm-title="Archive Teacher"
+                                                data-confirm-message="Archive this teacher? They will be hidden from active lists, but existing class history stays available."
+                                                data-confirm-action="Archive">
                                                 <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
-                                                    Delete
+                                                    Archive
                                                 </button>
                                             </form>
                                         </td>
@@ -139,6 +209,7 @@
                             </tbody>
                         </table>
                     </div>
+                    {{ dashboard_pagination(teacher_pagination, "teachers") }}
                 </section>
             {% endif %}
 
@@ -146,7 +217,7 @@
                 <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 class="text-3xl font-bold">Class Setup</h2>
-                        <p class="mt-1 text-sm text-gray-600">{{ classes|length }} configured class{{ '' if classes|length == 1 else 'es' }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ class_count }} configured class{{ '' if class_count == 1 else 'es' }}</p>
                     </div>
 
                     <a
@@ -204,9 +275,18 @@
                                             {% endif %}
                                         </td>
                                         <td class="py-3 text-right">
-                                            <form action="{{ url_for('delete_class', class_id=school_class.id) }}" method="post">
+                                            <a href="{{ url_for('edit_class', class_id=school_class.id) }}" class="mr-3 text-sm font-medium text-blue-600 hover:text-blue-700">
+                                                Edit
+                                            </a>
+                                            <form
+                                                action="{{ url_for('delete_class', class_id=school_class.id) }}"
+                                                method="post"
+                                                class="inline"
+                                                data-confirm-title="Archive Class"
+                                                data-confirm-message="Archive this class? It will be hidden from active presence, but attendance history stays available."
+                                                data-confirm-action="Archive">
                                                 <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
-                                                    Delete
+                                                    Archive
                                                 </button>
                                             </form>
                                         </td>
@@ -219,58 +299,7 @@
                             </tbody>
                         </table>
                     </div>
-                </section>
-            {% endif %}
-
-            {% if active_section == "users" %}
-                <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h2 class="text-3xl font-bold">User List</h2>
-                        <p class="mt-1 text-sm text-gray-600">{{ users|length }} registered user{{ '' if users|length == 1 else 's' }}</p>
-                    </div>
-
-                    <a
-                        href="{{ url_for('new_user') }}"
-                        class="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">
-                        Add User
-                    </a>
-                </header>
-
-                <section class="rounded-lg bg-white p-5 shadow">
-                    <div class="overflow-x-auto">
-                        <table class="w-full min-w-[460px] text-left text-sm">
-                            <thead class="border-b text-xs uppercase text-gray-500">
-                                <tr>
-                                    <th class="py-3 pr-4">Username</th>
-                                    <th class="py-3 pr-4">Created</th>
-                                    <th class="py-3 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y">
-                                {% for user in users %}
-                                    <tr>
-                                        <td class="py-3 pr-4 font-medium">{{ user.username }}</td>
-                                        <td class="py-3 pr-4">{{ user.created_at.strftime("%Y-%m-%d") }}</td>
-                                        <td class="py-3 text-right">
-                                            {% if user.id == current_user_id %}
-                                                <span class="text-sm text-gray-400">Current user</span>
-                                            {% else %}
-                                                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="post">
-                                                    <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
-                                                        Delete
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="3" class="py-6 text-center text-gray-500">No users registered.</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                    {{ dashboard_pagination(class_pagination, "classes") }}
                 </section>
             {% endif %}
 
@@ -293,6 +322,7 @@
                                 {% for school_class in presence_context.classes %}
                                     <option value="{{ school_class.id }}" {% if presence_context.selected_class_id == school_class.id %}selected{% endif %}>
                                         {{ school_class.name }}{% if school_class.class_code %} - {{ school_class.class_code }}{% endif %}
+                                        {% if school_class.deleted_at %}(archived){% endif %}
                                     </option>
                                 {% endfor %}
                             </select>
@@ -347,9 +377,11 @@
                                 {% for day in week %}
                                     {% set summary = day.summary %}
                                     <a
-                                        href="{{ url_for('dashboard', section='presence', class_id=presence_context.selected_class_id, month=presence_context.month.strftime('%Y-%m'), date=day.date.isoformat()) }}"
-                                        class="group relative min-h-24 border-b border-r p-2 hover:bg-blue-50 {% if not day.in_month %}bg-gray-50 text-gray-400{% elif presence_context.selected_date == day.date %}bg-blue-100{% else %}bg-white{% endif %}">
-                                        <div class="font-semibold">{{ day.date.day }}</div>
+                                        href="{{ url_for('attendance_detail', class_id=presence_context.selected_class_id, attendance_date=day.date.isoformat(), month=presence_context.month.strftime('%Y-%m')) }}"
+                                        class="group relative min-h-24 border-b border-r p-2 hover:bg-blue-50 {% if day.is_today %}bg-blue-50 ring-2 ring-[#0082C9] ring-inset{% elif not day.in_month %}bg-gray-50 text-gray-400{% else %}bg-white{% endif %}">
+                                        <div class="font-semibold {% if day.is_today %}inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-[#0082C9] px-2 text-white{% endif %}">
+                                            {{ day.date.day }}
+                                        </div>
                                         <div class="mt-2 space-y-1 text-xs">
                                             <div class="text-green-700">P {{ summary.presence }}</div>
                                             <div class="text-yellow-700">L {{ summary.late }}</div>
@@ -367,75 +399,6 @@
                             {% endfor %}
                         </div>
                     </section>
-
-                    {% if presence_context.selected_date %}
-                        <section class="mt-5 rounded-lg bg-white p-5 shadow">
-                            <header class="mb-4">
-                                <h3 class="text-xl font-semibold">Detail {{ presence_context.selected_date.strftime("%Y-%m-%d") }}</h3>
-                                <p class="text-sm text-gray-600">Modify attendance status and recorded datetime.</p>
-                            </header>
-
-                            <div class="overflow-x-auto">
-                                <table class="w-full min-w-[760px] text-left text-sm">
-                                    <thead class="border-b text-xs uppercase text-gray-500">
-                                        <tr>
-                                            <th class="py-3 pr-4">Student</th>
-                                            <th class="py-3 pr-4">NIM</th>
-                                            <th class="py-3 pr-4">Status</th>
-                                            <th class="py-3 pr-4">Presence Datetime</th>
-                                            <th class="py-3 text-right">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y">
-                                        {% for row in presence_context.detail_rows %}
-                                            {% set attendance = row.attendance %}
-                                            {% set form_id = "attendanceForm" ~ row.student.id %}
-                                            <tr>
-                                                <td class="py-3 pr-4 font-medium">{{ row.student.name }}</td>
-                                                <td class="py-3 pr-4">{{ row.student.nim }}</td>
-                                                <td class="py-3 pr-4">
-                                                    <select
-                                                        form="{{ form_id }}"
-                                                        name="status"
-                                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                                        {% set current_status = attendance.status if attendance else "absen" %}
-                                                        <option value="presence" {% if current_status == "presence" %}selected{% endif %}>Presence</option>
-                                                        <option value="late" {% if current_status == "late" %}selected{% endif %}>Late</option>
-                                                        <option value="absen" {% if current_status == "absen" %}selected{% endif %}>Absent</option>
-                                                    </select>
-                                                </td>
-                                                <td class="py-3 pr-4">
-                                                    <input
-                                                        form="{{ form_id }}"
-                                                        name="presence_at"
-                                                        type="datetime-local"
-                                                        value="{% if attendance %}{{ attendance.presence_at.strftime('%Y-%m-%dT%H:%M') }}{% else %}{{ presence_context.selected_date.isoformat() }}T00:00{% endif %}"
-                                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                                </td>
-                                                <td class="py-3 text-right">
-                                                    <form id="{{ form_id }}" action="{{ url_for('update_attendance') }}" method="post">
-                                                        <input type="hidden" name="class_id" value="{{ presence_context.selected_class_id }}">
-                                                        <input type="hidden" name="student_id" value="{{ row.student.id }}">
-                                                        <input type="hidden" name="attendance_date" value="{{ presence_context.selected_date.isoformat() }}">
-                                                        <input type="hidden" name="month" value="{{ presence_context.month.strftime('%Y-%m') }}">
-                                                        <button
-                                                            type="submit"
-                                                            class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                                                            Save
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        {% else %}
-                                            <tr>
-                                                <td colspan="5" class="py-6 text-center text-gray-500">No students assigned to this class.</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
-                    {% endif %}
                 {% else %}
                     <section class="rounded-lg bg-white p-8 text-center text-gray-500 shadow">
                         No class available. Create a class first.
@@ -449,7 +412,7 @@
                     <p class="mt-1 text-sm text-gray-600">Application behavior for face presence and student enrollment.</p>
                 </header>
 
-                <section class="max-w-2xl rounded-lg bg-white p-5 shadow">
+                <section class="w-full rounded-lg bg-white p-5 shadow">
                     <form action="{{ url_for('update_anti_spoof_setting') }}" method="post" class="space-y-5">
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
@@ -478,8 +441,96 @@
                         </button>
                     </form>
                 </section>
+
+                <section class="mt-5 w-full rounded-lg bg-white p-5 shadow">
+                    <header class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold">User Accounts</h3>
+                            <p class="mt-1 text-sm text-gray-600">{{ user_count }} registered user{{ '' if user_count == 1 else 's' }}</p>
+                        </div>
+
+                        <a
+                            href="{{ url_for('new_user') }}"
+                            class="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">
+                            Add User
+                        </a>
+                    </header>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[460px] text-left text-sm">
+                            <thead class="border-b text-xs uppercase text-gray-500">
+                                <tr>
+                                    <th class="py-3 pr-4">Username</th>
+                                    <th class="py-3 pr-4">Created</th>
+                                    <th class="py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                {% for user in users %}
+                                    <tr>
+                                        <td class="py-3 pr-4 font-medium">{{ user.username }}</td>
+                                        <td class="py-3 pr-4">{{ user.created_at.strftime("%Y-%m-%d") }}</td>
+                                        <td class="py-3 text-right">
+                                            {% if user.id == current_user_id %}
+                                                <span class="text-sm text-gray-400">Current user</span>
+                                            {% else %}
+                                                <form
+                                                    action="{{ url_for('delete_user', user_id=user.id) }}"
+                                                    method="post"
+                                                    data-confirm-title="Delete User"
+                                                    data-confirm-message="Delete this user account? This cannot be undone."
+                                                    data-confirm-action="Delete">
+                                                    <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="py-6 text-center text-gray-500">No users registered.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{ dashboard_pagination(user_pagination, "settings") }}
+                </section>
+
+                <section class="mt-5 w-full rounded-lg border border-red-200 bg-white p-5 shadow">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-red-700">Danger Zone</h3>
+                            <p class="mt-1 text-sm text-gray-600">
+                                Permanently delete archived data. Archived students are removed with their attendance, archived teachers are removed and their classes become unassigned, and archived classes are removed with their attendance.
+                            </p>
+                            {% set cleanup_total = archived_cleanup_counts.students + archived_cleanup_counts.teachers + archived_cleanup_counts.classes %}
+                            <div class="mt-3 grid gap-2 text-sm text-gray-700 sm:grid-cols-3">
+                                <div class="rounded-lg bg-red-50 px-3 py-2">Students: {{ archived_cleanup_counts.students }}</div>
+                                <div class="rounded-lg bg-red-50 px-3 py-2">Teachers: {{ archived_cleanup_counts.teachers }}</div>
+                                <div class="rounded-lg bg-red-50 px-3 py-2">Classes: {{ archived_cleanup_counts.classes }}</div>
+                            </div>
+                        </div>
+
+                        <form
+                            action="{{ url_for('cleanup_archived_data') }}"
+                            method="post"
+                            data-confirm-title="Permanent Cleanup"
+                            data-confirm-message="Permanently delete all archived data? Students and classes will remove their attendance records; teachers will only be removed from class assignments. This cannot be undone."
+                            data-confirm-action="Delete Permanently">
+                            <button
+                                type="submit"
+                                {% if cleanup_total == 0 %}disabled{% endif %}
+                                class="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300 sm:w-auto">
+                                Cleanup Archived
+                            </button>
+                        </form>
+                    </div>
+                </section>
             {% endif %}
         </main>
     </div>
+    <script src="{{ url_for('static', filename='js/confirm-modal.js') }}"></script>
 </body>
 </html>

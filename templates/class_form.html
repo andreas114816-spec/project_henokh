@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Class</title>
+    <title>{{ "Edit" if school_class is defined and school_class else "Add" }} Class</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -16,11 +16,14 @@
         <main class="flex w-full justify-center px-4 py-6 sm:px-6 lg:px-8">
             <section class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6">
             <div class="mb-5">
-                <h1 class="text-2xl font-bold text-gray-900">Add Class</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ "Edit" if school_class is defined and school_class else "Add" }} Class</h1>
                 <p class="text-sm text-gray-600 mt-2">Create a class and assign one teacher with selected students.</p>
             </div>
 
             <form action="{{ url_for('create_class') }}" method="post" class="space-y-5">
+                {% if school_class is defined and school_class %}
+                    <input type="hidden" name="class_id" value="{{ school_class.id }}">
+                {% endif %}
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <label for="className" class="block text-sm font-medium text-gray-700 mb-1">Class Name</label>
@@ -28,6 +31,7 @@
                             id="className"
                             name="name"
                             type="text"
+                            value="{{ school_class.name if school_class is defined and school_class else '' }}"
                             required
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                     </div>
@@ -38,6 +42,7 @@
                             id="classCode"
                             name="class_code"
                             type="text"
+                            value="{{ school_class.class_code if school_class is defined and school_class else '' }}"
                             required
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                     </div>
@@ -51,7 +56,9 @@
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                         <option value="">No teacher assigned</option>
                         {% for teacher in teachers %}
-                            <option value="{{ teacher.id }}">{{ teacher.name }}{% if teacher.subject %} - {{ teacher.subject }}{% endif %}</option>
+                            <option value="{{ teacher.id }}" {% if school_class is defined and school_class and school_class.teacher_id == teacher.id %}selected{% endif %}>
+                                {{ teacher.name }}{% if teacher.subject %} - {{ teacher.subject }}{% endif %}{% if teacher.deleted_at %} (archived){% endif %}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -63,6 +70,7 @@
                             id="startTime"
                             name="start_time"
                             type="time"
+                            value="{{ school_class.start_time.strftime('%H:%M') if school_class is defined and school_class and school_class.start_time else '' }}"
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                     </div>
 
@@ -72,6 +80,7 @@
                             id="endTime"
                             name="end_time"
                             type="time"
+                            value="{{ school_class.end_time.strftime('%H:%M') if school_class is defined and school_class and school_class.end_time else '' }}"
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                     </div>
 
@@ -81,6 +90,7 @@
                             id="startPresence"
                             name="start_presence"
                             type="time"
+                            value="{{ school_class.start_presence.strftime('%H:%M') if school_class is defined and school_class and school_class.start_presence else '' }}"
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                     </div>
 
@@ -90,6 +100,7 @@
                             id="endPresence"
                             name="end_presence"
                             type="time"
+                            value="{{ school_class.end_presence.strftime('%H:%M') if school_class is defined and school_class and school_class.end_presence else '' }}"
                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                     </div>
                 </div>
@@ -102,15 +113,17 @@
 
                     <div class="max-h-72 overflow-y-auto rounded-lg border border-gray-300 bg-white">
                         {% for student in students %}
+                            {% set is_selected = school_class is defined and school_class and student in school_class.students %}
                             <label class="flex items-center gap-3 border-b border-gray-100 px-3 py-2 text-sm last:border-b-0 hover:bg-gray-50">
                                 <input
                                     type="checkbox"
                                     name="student_ids"
                                     value="{{ student.id }}"
+                                    {% if is_selected %}checked{% endif %}
                                     class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <span>
                                     <span class="font-medium text-gray-900">{{ student.name }}</span>
-                                    <span class="text-gray-500">({{ student.nim }})</span>
+                                    <span class="text-gray-500">({{ student.nim }}){% if student.deleted_at %} (archived){% endif %}</span>
                                 </span>
                             </label>
                         {% else %}

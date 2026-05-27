@@ -1,3 +1,93 @@
+:root {
+    --brand-blue: #0082C9;
+    --brand-blue-dark: #006aa3;
+    --brand-blue-soft: #e8f6fd;
+    --brand-blue-panel: #f6fbff;
+    --brand-border: #bfe5f7;
+    --ink: #0f172a;
+}
+
+body {
+    background:
+        linear-gradient(180deg, #e8f6fd 0%, #f5fbff 42%, #edf7fc 100%) !important;
+    color: var(--ink);
+}
+
+.bg-white {
+    background-color: var(--brand-blue-panel) !important;
+}
+
+.bg-gray-100 {
+    background-color: #edf7fc !important;
+}
+
+.bg-gray-50 {
+    background-color: #f1f9fd !important;
+}
+
+.bg-blue-600 {
+    background-color: var(--brand-blue) !important;
+}
+
+.hover\:bg-blue-700:hover,
+.hover\:bg-blue-600:hover {
+    background-color: var(--brand-blue-dark) !important;
+}
+
+.text-blue-600,
+.text-blue-700 {
+    color: var(--brand-blue) !important;
+}
+
+.border-blue-500,
+.focus\:border-blue-500:focus {
+    border-color: var(--brand-blue) !important;
+}
+
+.focus\:ring-blue-100:focus {
+    --tw-ring-color: rgba(0, 130, 201, 0.18) !important;
+}
+
+.focus\:ring-blue-500:focus {
+    --tw-ring-color: rgba(0, 130, 201, 0.45) !important;
+}
+
+.text-blue-600:hover,
+.hover\:text-blue-700:hover {
+    color: var(--brand-blue-dark) !important;
+}
+
+.shadow,
+.shadow-lg,
+.shadow-xl {
+    box-shadow: 0 14px 34px rgba(0, 82, 126, 0.10) !important;
+}
+
+.border-gray-200,
+.border-gray-300 {
+    border-color: var(--brand-border) !important;
+}
+
+thead,
+.border-b.text-xs.uppercase {
+    background-color: var(--brand-blue-soft);
+}
+
+input,
+select {
+    background-color: #ffffff;
+}
+
+aside {
+    background:
+        linear-gradient(180deg, #ffffff 0%, #eef8fe 55%, #dff2fb 100%) !important;
+}
+
+main > header h2,
+main > header h1 {
+    color: #083f60;
+}
+
 .video-wrapper {
     position: relative;
     overflow: hidden;

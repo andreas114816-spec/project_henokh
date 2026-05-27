@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Student</title>
+    <title>{{ "Edit" if student else "Add" }} Student</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -16,17 +16,21 @@
         <main class="mx-auto grid w-full max-w-5xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-8">
         <section class="bg-white rounded-xl shadow-lg p-6">
             <div class="mb-5">
-                <h1 class="text-2xl font-bold text-gray-900">Add Student</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ "Edit" if student else "Add" }} Student</h1>
                 <p class="text-sm text-gray-600 mt-2">Register student data and save a face embedding.</p>
             </div>
 
-            <form id="studentForm" class="space-y-4">
+            <form id="studentForm" class="space-y-4" data-editing="{{ 'true' if student else 'false' }}">
+                {% if student %}
+                    <input id="studentId" type="hidden" value="{{ student.id }}">
+                {% endif %}
                 <div>
                     <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
                     <input
                         id="studentName"
                         name="name"
                         type="text"
+                        value="{{ student.name if student else '' }}"
                         required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
@@ -37,6 +41,7 @@
                         id="studentNim"
                         name="nim"
                         type="text"
+                        value="{{ student.nim if student else '' }}"
                         required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
@@ -46,7 +51,7 @@
                         id="saveStudentBtn"
                         type="submit"
                         class="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700">
-                        Save Student
+                        {{ "Update Student" if student else "Save Student" }}
                     </button>
 
                     <a

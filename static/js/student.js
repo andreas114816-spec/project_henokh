@@ -8,6 +8,8 @@ $(document).ready(function () {
     let stream = null;
     let detectionInterval = null;
     let isDetecting = false;
+    const isEditing = $("#studentForm").data("editing") === true || $("#studentForm").data("editing") === "true";
+    const saveButtonText = isEditing ? "Update Student" : "Save Student";
 
     async function startCamera() {
         try {
@@ -194,7 +196,7 @@ $(document).ready(function () {
 
         const image = captureImage();
 
-        if (!image) {
+        if (!image && !isEditing) {
             $("#studentStatus")
                 .removeClass("text-green-600")
                 .addClass("text-red-600")
@@ -213,6 +215,7 @@ $(document).ready(function () {
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
+                studentId: $("#studentId").val() || null,
                 name: $("#studentName").val(),
                 nim: $("#studentNim").val(),
                 image: image
@@ -236,7 +239,7 @@ $(document).ready(function () {
                     .text(response.message || "Failed to save student.");
             },
             complete: function () {
-                $("#saveStudentBtn").prop("disabled", false).text("Save Student");
+                $("#saveStudentBtn").prop("disabled", false).text(saveButtonText);
             }
         });
     });

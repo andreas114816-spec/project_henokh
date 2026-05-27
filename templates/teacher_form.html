@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Teacher</title>
+    <title>{{ "Edit" if teacher else "Add" }} Teacher</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -16,17 +16,21 @@
         <main class="flex w-full justify-center px-4 py-6 sm:px-6 lg:px-8">
             <section class="w-full max-w-xl bg-white rounded-xl shadow-lg p-6">
             <div class="mb-5">
-                <h1 class="text-2xl font-bold text-gray-900">Add Teacher</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ "Edit" if teacher else "Add" }} Teacher</h1>
                 <p class="text-sm text-gray-600 mt-2">Register teacher data for the dashboard.</p>
             </div>
 
             <form action="{{ url_for('create_teacher') }}" method="post" class="space-y-4">
+                {% if teacher %}
+                    <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
+                {% endif %}
                 <div>
                     <label for="teacherName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
                     <input
                         id="teacherName"
                         name="name"
                         type="text"
+                        value="{{ teacher.name if teacher else '' }}"
                         required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
@@ -37,6 +41,7 @@
                         id="teacherNip"
                         name="nip"
                         type="text"
+                        value="{{ teacher.nip if teacher else '' }}"
                         required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
@@ -47,6 +52,7 @@
                         id="teacherSubject"
                         name="subject"
                         type="text"
+                        value="{{ teacher.subject if teacher and teacher.subject else '' }}"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
                 </div>
 

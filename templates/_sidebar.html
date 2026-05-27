@@ -30,12 +30,6 @@
         </a>
 
         <a
-            href="{{ url_for('dashboard', section='users') }}"
-            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'users' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
-            User
-        </a>
-
-        <a
             href="{{ url_for('dashboard', section='presence') }}"
             class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'presence' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
             Presence List

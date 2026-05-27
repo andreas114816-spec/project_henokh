@@ -55,6 +55,7 @@ class Teacher(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     nip: Mapped[str] = mapped_column("NIP", String(40), unique=True, nullable=False, index=True)
     subject: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     classes: Mapped[list["SchoolClass"]] = relationship(back_populates="teacher")
 
@@ -66,6 +67,7 @@ class Student(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     nim: Mapped[str] = mapped_column("NIM", String(40), unique=True, nullable=False, index=True)
     face_embeddings: Mapped[list[float] | None] = mapped_column(JSON, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -89,6 +91,7 @@ class SchoolClass(Base):
     end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     start_presence: Mapped[time | None] = mapped_column(Time, nullable=True)
     end_presence: Mapped[time | None] = mapped_column(Time, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
