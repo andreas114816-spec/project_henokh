@@ -79,7 +79,7 @@ SessionLocal = scoped_session(
 
 
 def init_db():
-    from models.db_models import Student, User  # noqa: F401
+    from models.db_models import AppSetting, Attendance, SchoolClass, Student, Teacher, User  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 

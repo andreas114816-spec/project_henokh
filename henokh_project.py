@@ -37,6 +37,8 @@ DB_NAME = "presence"
 DB_USER = "user_admin"
 DB_PASSWORD = "password123"
 
+MOBILEFACENET_REPO_URL = "https://github.com/foamliu/MobileFaceNet.git"
+
 LOG_FILE = os.path.join(os.environ.get("TEMP", os.getcwd()), "henokh_project.log")
 
 
@@ -551,6 +553,7 @@ set -e
 PROJECT_FOLDER="{PROJECT_FOLDER}"
 GIT_REPO_URL="{GIT_REPO_URL}"
 AUTO_GIT_PULL="{1 if AUTO_GIT_PULL else 0}"
+MOBILEFACENET_REPO_URL="{MOBILEFACENET_REPO_URL}"
 PYTHON_BIN="{PYTHON_BIN}"
 VENV_NAME="{VENV_NAME}"
 CLEAN_PROJECT="{clean_value}"
@@ -682,14 +685,31 @@ set_env_value "DB_PORT" "$MARIADB_PORT"
 set_env_value "DB_NAME" "{DB_NAME}"
 set_env_value "DB_USER" "{DB_USER}"
 set_env_value "DB_PASSWORD" "{DB_PASSWORD}"
+set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
 
 echo ".env database values:"
-grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD)=" "$ENV_FILE" || true
+grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD|MOBILEFACENET_MODEL_PATH)=" "$ENV_FILE" || true
 
 echo "Loading .env..."
 set -a
 . "$ENV_FILE"
 set +a
+
+echo "Checking MobileFaceNet model..."
+if [ -f "$MOBILEFACENET_MODEL_PATH" ]; then
+    echo "MobileFaceNet model found: $MOBILEFACENET_MODEL_PATH"
+else
+    echo "Cloning foamliu/MobileFaceNet..."
+    mkdir -p "model"
+
+    if [ -d "model/MobileFaceNet" ]; then
+        BACKUP_NAME="model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
+        echo "Moving incomplete MobileFaceNet folder to: $BACKUP_NAME"
+        mv "model/MobileFaceNet" "$BACKUP_NAME"
+    fi
+
+    git clone "$MOBILEFACENET_REPO_URL" "model/MobileFaceNet"
+fi
 
 echo "Running database migrations..."
 "$VENV_NAME/bin/python" -m flask --app app migrate-db
@@ -846,9 +866,10 @@ set_env_value "DB_PORT" "$MARIADB_PORT"
 set_env_value "DB_NAME" "{DB_NAME}"
 set_env_value "DB_USER" "{DB_USER}"
 set_env_value "DB_PASSWORD" "{DB_PASSWORD}"
+set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
 
 echo "Database environment:"
-grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD)=" "$ENV_FILE" || true
+grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD|MOBILEFACENET_MODEL_PATH)=" "$ENV_FILE" || true
 
 if [ "{1 if AUTO_GIT_PULL else 0}" = "1" ]; then
     echo "Saving local changes temporarily..."
@@ -881,6 +902,22 @@ echo "Loading .env..."
 set -a
 . "$ENV_FILE"
 set +a
+
+echo "Checking MobileFaceNet model..."
+if [ -f "$MOBILEFACENET_MODEL_PATH" ]; then
+    echo "MobileFaceNet model found: $MOBILEFACENET_MODEL_PATH"
+else
+    echo "Cloning foamliu/MobileFaceNet..."
+    mkdir -p "model"
+
+    if [ -d "model/MobileFaceNet" ]; then
+        BACKUP_NAME="model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
+        echo "Moving incomplete MobileFaceNet folder to: $BACKUP_NAME"
+        mv "model/MobileFaceNet" "$BACKUP_NAME"
+    fi
+
+    git clone "{MOBILEFACENET_REPO_URL}" "model/MobileFaceNet"
+fi
 
 echo "Running database migrations..."
 "{VENV_NAME}/bin/python" -m flask --app app migrate-db

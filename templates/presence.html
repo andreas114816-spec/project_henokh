@@ -9,52 +9,80 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4" data-auto-start="{{ 'true' if auto_start else 'false' }}">
-    <main class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6">
+<body class="bg-gray-100 min-h-screen px-4 py-6" data-auto-start="{{ 'true' if auto_start else 'false' }}">
+    <main class="mx-auto w-full max-w-5xl bg-white rounded-xl shadow-lg p-6">
         <div class="mb-4 flex items-center justify-between gap-3">
             <h1 class="text-2xl font-bold text-gray-800">Presence Camera</h1>
             <a
-                href="{{ url_for('index') }}"
+                href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}"
                 class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50">
                 Back
             </a>
         </div>
 
-        <div class="video-wrapper mb-4">
-            <video
-                id="video"
-                autoplay
-                playsinline
-                class="w-full rounded-xl bg-black">
-            </video>
-
-            <canvas id="canvas"></canvas>
+        <div class="mb-4 max-w-md">
+            <label for="classSelect" class="mb-1 block text-sm font-medium text-gray-700">Class</label>
+            <select
+                id="classSelect"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <option value="">Select class target</option>
+                {% for school_class in classes %}
+                    <option value="{{ school_class.id }}" {% if selected_class_id == school_class.id %}selected{% endif %}>
+                        {{ school_class.name }}{% if school_class.class_code %} - {{ school_class.class_code }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
 
-        <div class="flex justify-center gap-4 mb-4">
-            <button
-                id="startBtn"
-                class="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700">
-                Start Camera
-            </button>
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div>
+                <div class="video-wrapper mb-4">
+                    <video
+                        id="video"
+                        autoplay
+                        playsinline
+                        class="w-full rounded-xl bg-black">
+                    </video>
 
-            <button
-                id="stopBtn"
-                class="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700">
-                Stop Camera
-            </button>
-        </div>
+                    <canvas id="canvas"></canvas>
+                </div>
 
-        <div class="text-center">
-            <p id="status" class="text-gray-600">
-                Camera not started
-            </p>
+                <div class="flex justify-center gap-4 mb-4">
+                    <button
+                        id="startBtn"
+                        class="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700">
+                        Start Camera
+                    </button>
 
-            <p id="backendResponse" class="text-sm text-green-600 mt-2"></p>
+                    <button
+                        id="stopBtn"
+                        class="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700">
+                        Stop Camera
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <p id="status" class="text-gray-600">
+                        Camera not started
+                    </p>
+
+                    <p id="backendResponse" class="text-sm text-green-600 mt-2"></p>
+                </div>
+            </div>
+
+            <section class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div class="mb-3">
+                    <h2 class="text-lg font-semibold text-gray-900">Detected Students</h2>
+                    <p id="selectedClassLabel" class="mt-1 text-sm text-gray-600">Select class target</p>
+                </div>
+
+                <div id="presenceResults" class="space-y-3">
+                    <p class="text-sm text-gray-500">No faces detected.</p>
+                </div>
+            </section>
         </div>
     </main>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

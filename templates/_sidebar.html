@@ -1,0 +1,64 @@
+<aside class="border-b border-gray-200 bg-white px-4 py-5 lg:min-h-screen lg:border-b-0 lg:border-r">
+    <div class="mb-6">
+        <p class="text-sm font-medium text-blue-700">Signed in as {{ username or session.get('username') }}</p>
+        <h1 class="mt-1 text-2xl font-bold">Dashboard</h1>
+    </div>
+
+    <nav class="grid gap-2">
+        <a
+            href="{{ url_for('dashboard', section='overview') }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'overview' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            Overview
+        </a>
+
+        <a
+            href="{{ url_for('dashboard', section='students') }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'students' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            Student
+        </a>
+
+        <a
+            href="{{ url_for('dashboard', section='teachers') }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'teachers' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            Teacher
+        </a>
+
+        <a
+            href="{{ url_for('dashboard', section='classes') }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'classes' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            Class Setup
+        </a>
+
+        <a
+            href="{{ url_for('dashboard', section='users') }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'users' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            User
+        </a>
+
+        <a
+            href="{{ url_for('dashboard', section='presence') }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'presence' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            Presence List
+        </a>
+
+        <a
+            href="{{ url_for('dashboard', section='settings') }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium {% if active_section == 'settings' %}bg-blue-600 text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            Settings
+        </a>
+
+        <a
+            href="{{ url_for('presence', start=1) }}"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            Presence Camera
+        </a>
+    </nav>
+
+    <form action="{{ url_for('logout') }}" method="post" class="mt-6">
+        <button
+            type="submit"
+            class="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+            Logout
+        </button>
+    </form>
+</aside>

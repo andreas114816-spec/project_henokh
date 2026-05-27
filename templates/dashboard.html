@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="min-h-screen bg-gray-100 text-gray-900">
+    <div class="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+        {% include "_sidebar.html" %}
+
+        <main class="px-4 py-6 sm:px-6 lg:px-8">
+            {% if active_section == "overview" %}
+                <header class="mb-6">
+                    <h2 class="text-3xl font-bold">Overview</h2>
+                </header>
+
+                <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <a href="{{ url_for('dashboard', section='students') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
+                        <p class="text-sm font-medium text-gray-500">Students</p>
+                        <p class="mt-2 text-3xl font-bold">{{ students|length }}</p>
+                    </a>
+
+                    <a href="{{ url_for('dashboard', section='teachers') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
+                        <p class="text-sm font-medium text-gray-500">Teachers</p>
+                        <p class="mt-2 text-3xl font-bold">{{ teachers|length }}</p>
+                    </a>
+
+                    <a href="{{ url_for('dashboard', section='classes') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
+                        <p class="text-sm font-medium text-gray-500">Classes</p>
+                        <p class="mt-2 text-3xl font-bold">{{ classes|length }}</p>
+                    </a>
+
+                    <a href="{{ url_for('dashboard', section='users') }}" class="rounded-lg bg-white p-5 shadow hover:bg-gray-50">
+                        <p class="text-sm font-medium text-gray-500">Users</p>
+                        <p class="mt-2 text-3xl font-bold">{{ users|length }}</p>
+                    </a>
+                </section>
+            {% endif %}
+
+            {% if active_section == "students" %}
+                <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold">Student List</h2>
+                        <p class="mt-1 text-sm text-gray-600">{{ students|length }} registered student{{ '' if students|length == 1 else 's' }}</p>
+                    </div>
+
+                    <a
+                        href="{{ url_for('new_student') }}"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">
+                        Add Student
+                    </a>
+                </header>
+
+                <section class="rounded-lg bg-white p-5 shadow">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[520px] text-left text-sm">
+                            <thead class="border-b text-xs uppercase text-gray-500">
+                                <tr>
+                                    <th class="py-3 pr-4">Name</th>
+                                    <th class="py-3 pr-4">NIM</th>
+                                    <th class="py-3 pr-4">Face Data</th>
+                                    <th class="py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                {% for student in students %}
+                                    <tr>
+                                        <td class="py-3 pr-4 font-medium">{{ student.name }}</td>
+                                        <td class="py-3 pr-4">{{ student.nim }}</td>
+                                        <td class="py-3 pr-4">{{ "Saved" if student.face_embeddings else "Missing" }}</td>
+                                        <td class="py-3 text-right">
+                                            <form action="{{ url_for('delete_student', student_id=student.id) }}" method="post">
+                                                <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="py-6 text-center text-gray-500">No students registered.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if active_section == "teachers" %}
+                <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold">Teacher List</h2>
+                        <p class="mt-1 text-sm text-gray-600">{{ teachers|length }} registered teacher{{ '' if teachers|length == 1 else 's' }}</p>
+                    </div>
+
+                    <a
+                        href="{{ url_for('new_teacher') }}"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">
+                        Add Teacher
+                    </a>
+                </header>
+
+                <section class="rounded-lg bg-white p-5 shadow">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[520px] text-left text-sm">
+                            <thead class="border-b text-xs uppercase text-gray-500">
+                                <tr>
+                                    <th class="py-3 pr-4">Name</th>
+                                    <th class="py-3 pr-4">NIP</th>
+                                    <th class="py-3 pr-4">Subject</th>
+                                    <th class="py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                {% for teacher in teachers %}
+                                    <tr>
+                                        <td class="py-3 pr-4 font-medium">{{ teacher.name }}</td>
+                                        <td class="py-3 pr-4">{{ teacher.nip }}</td>
+                                        <td class="py-3 pr-4">{{ teacher.subject or "-" }}</td>
+                                        <td class="py-3 text-right">
+                                            <form action="{{ url_for('delete_teacher', teacher_id=teacher.id) }}" method="post">
+                                                <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="py-6 text-center text-gray-500">No teachers registered.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if active_section == "classes" %}
+                <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold">Class Setup</h2>
+                        <p class="mt-1 text-sm text-gray-600">{{ classes|length }} configured class{{ '' if classes|length == 1 else 'es' }}</p>
+                    </div>
+
+                    <a
+                        href="{{ url_for('new_class') }}"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">
+                        Add Class
+                    </a>
+                </header>
+
+                <section class="rounded-lg bg-white p-5 shadow">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[980px] text-left text-sm">
+                            <thead class="border-b text-xs uppercase text-gray-500">
+                                <tr>
+                                    <th class="py-3 pr-4">Class Name</th>
+                                    <th class="py-3 pr-4">Class Code</th>
+                                    <th class="py-3 pr-4">Class Time</th>
+                                    <th class="py-3 pr-4">Presence Time</th>
+                                    <th class="py-3 pr-4">Teacher</th>
+                                    <th class="py-3 pr-4">Students</th>
+                                    <th class="py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                {% for school_class in classes %}
+                                    <tr>
+                                        <td class="py-3 pr-4 font-medium">{{ school_class.name }}</td>
+                                        <td class="py-3 pr-4">{{ school_class.class_code }}</td>
+                                        <td class="py-3 pr-4">
+                                            {% if school_class.start_time and school_class.end_time %}
+                                                {{ school_class.start_time.strftime("%H:%M") }} - {{ school_class.end_time.strftime("%H:%M") }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            {% if school_class.start_presence and school_class.end_presence %}
+                                                {{ school_class.start_presence.strftime("%H:%M") }} - {{ school_class.end_presence.strftime("%H:%M") }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            {% if school_class.teacher %}
+                                                {{ school_class.teacher.name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            {% if school_class.students %}
+                                                {{ school_class.students|map(attribute='name')|join(', ') }}
+                                            {% else %}
+                                                No students assigned
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 text-right">
+                                            <form action="{{ url_for('delete_class', class_id=school_class.id) }}" method="post">
+                                                <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="py-6 text-center text-gray-500">No classes configured.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if active_section == "users" %}
+                <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold">User List</h2>
+                        <p class="mt-1 text-sm text-gray-600">{{ users|length }} registered user{{ '' if users|length == 1 else 's' }}</p>
+                    </div>
+
+                    <a
+                        href="{{ url_for('new_user') }}"
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700">
+                        Add User
+                    </a>
+                </header>
+
+                <section class="rounded-lg bg-white p-5 shadow">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[460px] text-left text-sm">
+                            <thead class="border-b text-xs uppercase text-gray-500">
+                                <tr>
+                                    <th class="py-3 pr-4">Username</th>
+                                    <th class="py-3 pr-4">Created</th>
+                                    <th class="py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                {% for user in users %}
+                                    <tr>
+                                        <td class="py-3 pr-4 font-medium">{{ user.username }}</td>
+                                        <td class="py-3 pr-4">{{ user.created_at.strftime("%Y-%m-%d") }}</td>
+                                        <td class="py-3 text-right">
+                                            {% if user.id == current_user_id %}
+                                                <span class="text-sm text-gray-400">Current user</span>
+                                            {% else %}
+                                                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="post">
+                                                    <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="py-6 text-center text-gray-500">No users registered.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if active_section == "presence" %}
+                <header class="mb-6">
+                    <h2 class="text-3xl font-bold">Presence List</h2>
+                    <p class="mt-1 text-sm text-gray-600">Review attendance by class and date.</p>
+                </header>
+
+                <section class="mb-5 rounded-lg bg-white p-5 shadow">
+                    <form action="{{ url_for('dashboard') }}" method="get" class="grid gap-4 md:grid-cols-[minmax(220px,1fr)_180px_auto] md:items-end">
+                        <input type="hidden" name="section" value="presence">
+
+                        <div>
+                            <label for="presenceClass" class="mb-1 block text-sm font-medium text-gray-700">Class</label>
+                            <select
+                                id="presenceClass"
+                                name="class_id"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                {% for school_class in presence_context.classes %}
+                                    <option value="{{ school_class.id }}" {% if presence_context.selected_class_id == school_class.id %}selected{% endif %}>
+                                        {{ school_class.name }}{% if school_class.class_code %} - {{ school_class.class_code }}{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="presenceMonth" class="mb-1 block text-sm font-medium text-gray-700">Month</label>
+                            <input
+                                id="presenceMonth"
+                                name="month"
+                                type="month"
+                                value="{{ presence_context.month.strftime('%Y-%m') }}"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                            View
+                        </button>
+                    </form>
+                </section>
+
+                {% if presence_context.selected_class %}
+                    <section class="rounded-lg bg-white p-5 shadow">
+                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="text-xl font-semibold">{{ presence_context.selected_class.name }}</h3>
+                                <p class="text-sm text-gray-600">{{ presence_context.month.strftime("%B %Y") }}</p>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <a
+                                    href="{{ url_for('dashboard', section='presence', class_id=presence_context.selected_class_id, month=presence_context.previous_month.strftime('%Y-%m')) }}"
+                                    class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    Previous
+                                </a>
+                                <a
+                                    href="{{ url_for('dashboard', section='presence', class_id=presence_context.selected_class_id, month=presence_context.next_month.strftime('%Y-%m')) }}"
+                                    class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    Next
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-7 border-l border-t text-sm">
+                            {% for day_name in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] %}
+                                <div class="border-b border-r bg-gray-50 px-2 py-2 text-center font-medium text-gray-600">{{ day_name }}</div>
+                            {% endfor %}
+
+                            {% for week in presence_context.calendar_weeks %}
+                                {% for day in week %}
+                                    {% set summary = day.summary %}
+                                    <a
+                                        href="{{ url_for('dashboard', section='presence', class_id=presence_context.selected_class_id, month=presence_context.month.strftime('%Y-%m'), date=day.date.isoformat()) }}"
+                                        class="group relative min-h-24 border-b border-r p-2 hover:bg-blue-50 {% if not day.in_month %}bg-gray-50 text-gray-400{% elif presence_context.selected_date == day.date %}bg-blue-100{% else %}bg-white{% endif %}">
+                                        <div class="font-semibold">{{ day.date.day }}</div>
+                                        <div class="mt-2 space-y-1 text-xs">
+                                            <div class="text-green-700">P {{ summary.presence }}</div>
+                                            <div class="text-yellow-700">L {{ summary.late }}</div>
+                                            <div class="text-red-700">A {{ summary.absen }}</div>
+                                        </div>
+
+                                        <div class="pointer-events-none absolute left-2 top-10 z-10 hidden w-44 rounded-lg bg-gray-900 p-3 text-xs text-white shadow-lg group-hover:block">
+                                            <p class="font-semibold">{{ day.date.strftime("%Y-%m-%d") }}</p>
+                                            <p class="mt-1">Presence: {{ summary.presence }}</p>
+                                            <p>Late: {{ summary.late }}</p>
+                                            <p>Absent: {{ summary.absen }}</p>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </section>
+
+                    {% if presence_context.selected_date %}
+                        <section class="mt-5 rounded-lg bg-white p-5 shadow">
+                            <header class="mb-4">
+                                <h3 class="text-xl font-semibold">Detail {{ presence_context.selected_date.strftime("%Y-%m-%d") }}</h3>
+                                <p class="text-sm text-gray-600">Modify attendance status and recorded datetime.</p>
+                            </header>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full min-w-[760px] text-left text-sm">
+                                    <thead class="border-b text-xs uppercase text-gray-500">
+                                        <tr>
+                                            <th class="py-3 pr-4">Student</th>
+                                            <th class="py-3 pr-4">NIM</th>
+                                            <th class="py-3 pr-4">Status</th>
+                                            <th class="py-3 pr-4">Presence Datetime</th>
+                                            <th class="py-3 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y">
+                                        {% for row in presence_context.detail_rows %}
+                                            {% set attendance = row.attendance %}
+                                            {% set form_id = "attendanceForm" ~ row.student.id %}
+                                            <tr>
+                                                <td class="py-3 pr-4 font-medium">{{ row.student.name }}</td>
+                                                <td class="py-3 pr-4">{{ row.student.nim }}</td>
+                                                <td class="py-3 pr-4">
+                                                    <select
+                                                        form="{{ form_id }}"
+                                                        name="status"
+                                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                        {% set current_status = attendance.status if attendance else "absen" %}
+                                                        <option value="presence" {% if current_status == "presence" %}selected{% endif %}>Presence</option>
+                                                        <option value="late" {% if current_status == "late" %}selected{% endif %}>Late</option>
+                                                        <option value="absen" {% if current_status == "absen" %}selected{% endif %}>Absent</option>
+                                                    </select>
+                                                </td>
+                                                <td class="py-3 pr-4">
+                                                    <input
+                                                        form="{{ form_id }}"
+                                                        name="presence_at"
+                                                        type="datetime-local"
+                                                        value="{% if attendance %}{{ attendance.presence_at.strftime('%Y-%m-%dT%H:%M') }}{% else %}{{ presence_context.selected_date.isoformat() }}T00:00{% endif %}"
+                                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
+                                                </td>
+                                                <td class="py-3 text-right">
+                                                    <form id="{{ form_id }}" action="{{ url_for('update_attendance') }}" method="post">
+                                                        <input type="hidden" name="class_id" value="{{ presence_context.selected_class_id }}">
+                                                        <input type="hidden" name="student_id" value="{{ row.student.id }}">
+                                                        <input type="hidden" name="attendance_date" value="{{ presence_context.selected_date.isoformat() }}">
+                                                        <input type="hidden" name="month" value="{{ presence_context.month.strftime('%Y-%m') }}">
+                                                        <button
+                                                            type="submit"
+                                                            class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                                            Save
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="5" class="py-6 text-center text-gray-500">No students assigned to this class.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    {% endif %}
+                {% else %}
+                    <section class="rounded-lg bg-white p-8 text-center text-gray-500 shadow">
+                        No class available. Create a class first.
+                    </section>
+                {% endif %}
+            {% endif %}
+
+            {% if active_section == "settings" %}
+                <header class="mb-6">
+                    <h2 class="text-3xl font-bold">Settings</h2>
+                    <p class="mt-1 text-sm text-gray-600">Application behavior for face presence and student enrollment.</p>
+                </header>
+
+                <section class="max-w-2xl rounded-lg bg-white p-5 shadow">
+                    <form action="{{ url_for('update_anti_spoof_setting') }}" method="post" class="space-y-5">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold">Anti-spoof detection</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    When disabled, face boxes still appear and student creation skips the real-person score check.
+                                </p>
+                            </div>
+
+                            <label class="inline-flex cursor-pointer items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    name="anti_spoof_enabled"
+                                    class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    {% if anti_spoof_enabled %}checked{% endif %}>
+                                <span class="text-sm font-medium text-gray-700">
+                                    {{ "Enabled" if anti_spoof_enabled else "Disabled" }}
+                                </span>
+                            </label>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                            Save Settings
+                        </button>
+                    </form>
+                </section>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

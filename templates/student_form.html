@@ -9,8 +9,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body class="bg-gray-100 min-h-screen px-4 py-6">
-    <main class="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[360px_1fr]">
+<body class="min-h-screen bg-gray-100 text-gray-900">
+    <div class="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+        {% include "_sidebar.html" %}
+
+        <main class="mx-auto grid w-full max-w-5xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-8">
         <section class="bg-white rounded-xl shadow-lg p-6">
             <div class="mb-5">
                 <h1 class="text-2xl font-bold text-gray-900">Add Student</h1>
@@ -47,9 +50,9 @@
                     </button>
 
                     <a
-                        href="{{ url_for('presence', start=1) }}"
+                        href="{{ url_for('dashboard', section='students') }}"
                         class="rounded-lg border border-gray-300 px-4 py-2 text-center font-medium text-gray-800 hover:bg-gray-50">
-                        Presence Camera
+                        Back to Dashboard
                     </a>
                 </div>
             </form>
@@ -82,11 +85,13 @@
                     playsinline
                     class="w-full rounded-xl bg-black">
                 </video>
+                <canvas id="studentCanvas"></canvas>
             </div>
 
             <p id="cameraStatus" class="mt-4 text-center text-sm text-gray-600">Camera not started</p>
         </section>
-    </main>
+        </main>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="{{ url_for('static', filename='js/student.js') }}"></script>
