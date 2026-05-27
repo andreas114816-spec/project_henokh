@@ -195,12 +195,7 @@ def run_wsl_script(script, user=None, check=True):
     process.stdin.write(script.encode("utf-8"))
     process.stdin.close()
 
-    while True:
-        chunk = process.stdout.read(4096)
-
-        if not chunk:
-            break
-
+    for chunk in iter(process.stdout.readline, b""):
         text = chunk.decode("utf-8", errors="replace")
         print(text, end="", flush=True)
         write_log_file(text.rstrip("\n"))
@@ -734,7 +729,7 @@ def install_all(clean_project=False):
         raise RuntimeError(
             f"{DISTRO_NAME} is still not installed.\n"
             "If Windows requested a restart, restart your PC and run this command again:\n"
-            "python henokh_cli.py install"
+            "python henokh_project.py install"
         )
 
     install_python_31213()
@@ -757,7 +752,7 @@ set -e
 
 if ! dpkg -s mariadb-server > /dev/null 2>&1; then
     echo "ERROR: MariaDB is not installed."
-    echo "Please run: python henokh_cli.py install"
+    echo "Please run: python henokh_project.py install"
     exit 1
 fi
 
@@ -856,14 +851,14 @@ def run_program():
         raise RuntimeError(
             f"{DISTRO_NAME} is not installed.\n"
             "Run this first:\n"
-            "python henokh_cli.py install"
+            "python henokh_project.py install"
         )
 
     if not is_project_ready():
         raise RuntimeError(
             "Project prerequisites are missing.\n"
             "Run this first:\n"
-            "python henokh_cli.py install"
+            "python henokh_project.py install"
         )
 
     start_mariadb_for_run()
@@ -965,13 +960,18 @@ fi
 
 echo "Running database migrations before app start..."
 "{VENV_NAME}/bin/python" -m flask --app app migrate-db
+echo "Database migrations finished."
 
 echo "Seeding default admin user..."
 "{VENV_NAME}/bin/python" -m flask --app app seed-admin
+echo "Default admin user check finished."
 
 echo
-echo "Starting Gunicorn..."
-echo "Flask URL: http://localhost:{GUNICORN_PORT}"
+echo "========================================"
+echo "Starting Henokh Presence app..."
+echo "Open this URL in your browser:"
+echo "http://localhost:{GUNICORN_PORT}"
+echo "========================================"
 echo "MariaDB Host: $DB_HOST"
 echo "MariaDB Port: $DB_PORT"
 echo "Database Name: $DB_NAME"
