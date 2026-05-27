@@ -919,7 +919,7 @@ else
     git clone "{MOBILEFACENET_REPO_URL}" "model/MobileFaceNet"
 fi
 
-echo "Running database migrations..."
+echo "Running database migrations before app start..."
 "{VENV_NAME}/bin/python" -m flask --app app migrate-db
 
 echo "Seeding default admin user..."
@@ -985,7 +985,7 @@ def main():
 
     subparsers.add_parser(
         "run",
-        help="Start MariaDB, auto-pull project, update .env, and run Gunicorn"
+        help="Start MariaDB, auto-pull project, update .env, run migrations, and run Gunicorn"
     )
 
     subparsers.add_parser(
