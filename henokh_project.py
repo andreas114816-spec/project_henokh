@@ -14,7 +14,7 @@ DISTRO_NAME = "Ubuntu-22.04"
 PROJECT_FOLDER = "project_henokh"
 
 GIT_REPO_URL = "https://github.com/andreas114816-spec/project_henokh.git"
-AUTO_GIT_PULL = False
+AUTO_GIT_PULL = True
 
 PYTHON_VERSION = "3.12.13"
 PYTHON_PREFIX = f"/opt/python-{PYTHON_VERSION}"
