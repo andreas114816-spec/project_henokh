@@ -90,7 +90,30 @@
             return;
         }
 
+        if (
+            form.action.includes("/settings/restore-selected-archived")
+            && !form.querySelector("input[name='item_ids']:checked")
+        ) {
+            event.preventDefault();
+            return;
+        }
+
         event.preventDefault();
         openModal(form);
+    });
+
+    document.addEventListener("change", function (event) {
+        const selectAll = event.target.closest("[data-select-archive-group]");
+
+        if (!selectAll) {
+            return;
+        }
+
+        const group = selectAll.dataset.selectArchiveGroup;
+        document
+            .querySelectorAll(`[data-archive-group="${group}"]`)
+            .forEach(function (checkbox) {
+                checkbox.checked = selectAll.checked;
+            });
     });
 })();

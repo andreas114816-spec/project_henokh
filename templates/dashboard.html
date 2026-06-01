@@ -498,6 +498,226 @@
                     {{ dashboard_pagination(user_pagination, "settings") }}
                 </section>
 
+                <section class="mt-5 w-full rounded-lg bg-white p-5 shadow">
+                    <header class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold">Archived Data</h3>
+                            <p class="mt-1 text-sm text-gray-600">Restore archived students, teachers, or classes back into active lists.</p>
+                        </div>
+                    </header>
+
+                    <div class="space-y-5">
+                        <div class="rounded-lg border border-gray-200">
+                            <div class="flex flex-col gap-3 border-b bg-blue-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Students</h4>
+                                    <p class="text-sm text-gray-600">{{ archived_restore_data.students|length }} archived</p>
+                                </div>
+                                <form
+                                    action="{{ url_for('restore_archived_data') }}"
+                                    method="post"
+                                    data-confirm-title="Restore Students"
+                                    data-confirm-message="Restore all archived students? Their attendance records will remain connected."
+                                    data-confirm-action="Restore All">
+                                    <input type="hidden" name="data_type" value="students">
+                                    <button
+                                        type="submit"
+                                        {% if archived_restore_data.students|length == 0 %}disabled{% endif %}
+                                        class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300">
+                                        Restore All
+                                    </button>
+                                </form>
+                            </div>
+                            <form
+                                action="{{ url_for('restore_selected_archived_data') }}"
+                                method="post"
+                                data-confirm-title="Restore Selected Students"
+                                data-confirm-message="Restore the selected archived students?"
+                                data-confirm-action="Restore Selected">
+                                <input type="hidden" name="data_type" value="students">
+                                <div class="max-h-80 overflow-auto">
+                                    <table class="w-full min-w-[560px] text-left text-sm">
+                                        <thead class="sticky top-0 border-b bg-white text-xs uppercase text-gray-500">
+                                            <tr>
+                                                <th class="w-12 px-4 py-3">
+                                                    <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600" data-select-archive-group="students">
+                                                </th>
+                                                <th class="py-3 pr-4">Name</th>
+                                                <th class="py-3 pr-4">NIM</th>
+                                                <th class="py-3 pr-4">Archived</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y">
+                                            {% for student in archived_restore_data.students %}
+                                                <tr>
+                                                    <td class="px-4 py-3">
+                                                        <input type="checkbox" name="item_ids" value="{{ student.id }}" class="h-4 w-4 rounded border-gray-300 text-blue-600" data-archive-group="students">
+                                                    </td>
+                                                    <td class="py-3 pr-4 font-medium">{{ student.name }}</td>
+                                                    <td class="py-3 pr-4">{{ student.nim }}</td>
+                                                    <td class="py-3 pr-4">{{ student.deleted_at.strftime("%Y-%m-%d %H:%M") if student.deleted_at else "-" }}</td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="4" class="py-6 text-center text-gray-500">No archived students.</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="flex justify-end border-t bg-gray-50 px-4 py-3">
+                                    <button
+                                        type="submit"
+                                        {% if archived_restore_data.students|length == 0 %}disabled{% endif %}
+                                        class="rounded-lg border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400">
+                                        Restore Selected
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="rounded-lg border border-gray-200">
+                            <div class="flex flex-col gap-3 border-b bg-blue-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Teachers</h4>
+                                    <p class="text-sm text-gray-600">{{ archived_restore_data.teachers|length }} archived</p>
+                                </div>
+                                <form
+                                    action="{{ url_for('restore_archived_data') }}"
+                                    method="post"
+                                    data-confirm-title="Restore Teachers"
+                                    data-confirm-message="Restore all archived teachers to the active teacher list?"
+                                    data-confirm-action="Restore All">
+                                    <input type="hidden" name="data_type" value="teachers">
+                                    <button
+                                        type="submit"
+                                        {% if archived_restore_data.teachers|length == 0 %}disabled{% endif %}
+                                        class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300">
+                                        Restore All
+                                    </button>
+                                </form>
+                            </div>
+                            <form
+                                action="{{ url_for('restore_selected_archived_data') }}"
+                                method="post"
+                                data-confirm-title="Restore Selected Teachers"
+                                data-confirm-message="Restore the selected archived teachers?"
+                                data-confirm-action="Restore Selected">
+                                <input type="hidden" name="data_type" value="teachers">
+                                <div class="max-h-80 overflow-auto">
+                                    <table class="w-full min-w-[640px] text-left text-sm">
+                                        <thead class="sticky top-0 border-b bg-white text-xs uppercase text-gray-500">
+                                            <tr>
+                                                <th class="w-12 px-4 py-3">
+                                                    <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600" data-select-archive-group="teachers">
+                                                </th>
+                                                <th class="py-3 pr-4">Name</th>
+                                                <th class="py-3 pr-4">NIP</th>
+                                                <th class="py-3 pr-4">Subject</th>
+                                                <th class="py-3 pr-4">Archived</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y">
+                                            {% for teacher in archived_restore_data.teachers %}
+                                                <tr>
+                                                    <td class="px-4 py-3">
+                                                        <input type="checkbox" name="item_ids" value="{{ teacher.id }}" class="h-4 w-4 rounded border-gray-300 text-blue-600" data-archive-group="teachers">
+                                                    </td>
+                                                    <td class="py-3 pr-4 font-medium">{{ teacher.name }}</td>
+                                                    <td class="py-3 pr-4">{{ teacher.nip }}</td>
+                                                    <td class="py-3 pr-4">{{ teacher.subject or "-" }}</td>
+                                                    <td class="py-3 pr-4">{{ teacher.deleted_at.strftime("%Y-%m-%d %H:%M") if teacher.deleted_at else "-" }}</td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="5" class="py-6 text-center text-gray-500">No archived teachers.</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="flex justify-end border-t bg-gray-50 px-4 py-3">
+                                    <button
+                                        type="submit"
+                                        {% if archived_restore_data.teachers|length == 0 %}disabled{% endif %}
+                                        class="rounded-lg border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400">
+                                        Restore Selected
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="rounded-lg border border-gray-200">
+                            <div class="flex flex-col gap-3 border-b bg-blue-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Classes</h4>
+                                    <p class="text-sm text-gray-600">{{ archived_restore_data.classes|length }} archived</p>
+                                </div>
+                                <form
+                                    action="{{ url_for('restore_archived_data') }}"
+                                    method="post"
+                                    data-confirm-title="Restore Classes"
+                                    data-confirm-message="Restore all archived classes? Their attendance records will remain connected."
+                                    data-confirm-action="Restore All">
+                                    <input type="hidden" name="data_type" value="classes">
+                                    <button
+                                        type="submit"
+                                        {% if archived_restore_data.classes|length == 0 %}disabled{% endif %}
+                                        class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300">
+                                        Restore All
+                                    </button>
+                                </form>
+                            </div>
+                            <form
+                                action="{{ url_for('restore_selected_archived_data') }}"
+                                method="post"
+                                data-confirm-title="Restore Selected Classes"
+                                data-confirm-message="Restore the selected archived classes?"
+                                data-confirm-action="Restore Selected">
+                                <input type="hidden" name="data_type" value="classes">
+                                <div class="max-h-80 overflow-auto">
+                                    <table class="w-full min-w-[560px] text-left text-sm">
+                                        <thead class="sticky top-0 border-b bg-white text-xs uppercase text-gray-500">
+                                            <tr>
+                                                <th class="w-12 px-4 py-3">
+                                                    <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600" data-select-archive-group="classes">
+                                                </th>
+                                                <th class="py-3 pr-4">Class Name</th>
+                                                <th class="py-3 pr-4">Class Code</th>
+                                                <th class="py-3 pr-4">Archived</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y">
+                                            {% for school_class in archived_restore_data.classes %}
+                                                <tr>
+                                                    <td class="px-4 py-3">
+                                                        <input type="checkbox" name="item_ids" value="{{ school_class.id }}" class="h-4 w-4 rounded border-gray-300 text-blue-600" data-archive-group="classes">
+                                                    </td>
+                                                    <td class="py-3 pr-4 font-medium">{{ school_class.name }}</td>
+                                                    <td class="py-3 pr-4">{{ school_class.class_code }}</td>
+                                                    <td class="py-3 pr-4">{{ school_class.deleted_at.strftime("%Y-%m-%d %H:%M") if school_class.deleted_at else "-" }}</td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="4" class="py-6 text-center text-gray-500">No archived classes.</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="flex justify-end border-t bg-gray-50 px-4 py-3">
+                                    <button
+                                        type="submit"
+                                        {% if archived_restore_data.classes|length == 0 %}disabled{% endif %}
+                                        class="rounded-lg border border-blue-600 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-400">
+                                        Restore Selected
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="mt-5 w-full rounded-lg border border-red-200 bg-white p-5 shadow">
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div>

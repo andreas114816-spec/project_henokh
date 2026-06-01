@@ -176,6 +176,29 @@ def build_archived_cleanup_counts(session):
     }
 
 
+def build_archived_restore_data(session):
+    return {
+        "students": (
+            session.query(Student)
+            .filter(Student.deleted_at.is_not(None))
+            .order_by(Student.deleted_at.desc(), Student.name.asc())
+            .all()
+        ),
+        "teachers": (
+            session.query(Teacher)
+            .filter(Teacher.deleted_at.is_not(None))
+            .order_by(Teacher.deleted_at.desc(), Teacher.name.asc())
+            .all()
+        ),
+        "classes": (
+            session.query(SchoolClass)
+            .filter(SchoolClass.deleted_at.is_not(None))
+            .order_by(SchoolClass.deleted_at.desc(), SchoolClass.name.asc())
+            .all()
+        ),
+    }
+
+
 def build_presence_dashboard_context(session):
     today = current_app_datetime().date()
     selected_class_id = request.args.get("class_id", type=int)
@@ -417,6 +440,11 @@ def dashboard():
             if active_section == "settings"
             else None
         )
+        archived_restore_data = (
+            build_archived_restore_data(session)
+            if active_section == "settings"
+            else None
+        )
 
         return render_template(
             "dashboard.html",
@@ -437,7 +465,8 @@ def dashboard():
             username=flask_session.get("username"),
             anti_spoof_enabled=is_anti_spoof_enabled(),
             presence_context=presence_context,
-            archived_cleanup_counts=archived_cleanup_counts
+            archived_cleanup_counts=archived_cleanup_counts,
+            archived_restore_data=archived_restore_data
         )
     finally:
         SessionLocal.remove()
@@ -668,6 +697,75 @@ def cleanup_archived_data():
     return redirect(url_for("dashboard", section="settings", cleanup=f"deleted-{total}"))
 
 
+@app.route("/settings/restore-archived", methods=["POST"])
+@login_required
+def restore_archived_data():
+    data_type = (request.form.get("data_type") or "").strip()
+    model_by_type = {
+        "students": Student,
+        "teachers": Teacher,
+        "classes": SchoolClass,
+    }
+    model = model_by_type.get(data_type)
+
+    if model is None:
+        return redirect(url_for("dashboard", section="settings"))
+
+    session = SessionLocal()
+
+    try:
+        restored_count = (
+            session.query(model)
+            .filter(model.deleted_at.is_not(None))
+            .update({model.deleted_at: None}, synchronize_session=False)
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        SessionLocal.remove()
+
+    return redirect(url_for("dashboard", section="settings", restored=f"{data_type}-{restored_count}"))
+
+
+@app.route("/settings/restore-selected-archived", methods=["POST"])
+@login_required
+def restore_selected_archived_data():
+    data_type = (request.form.get("data_type") or "").strip()
+    selected_ids = [
+        int(item_id)
+        for item_id in request.form.getlist("item_ids")
+        if item_id.isdigit()
+    ]
+    model_by_type = {
+        "students": Student,
+        "teachers": Teacher,
+        "classes": SchoolClass,
+    }
+    model = model_by_type.get(data_type)
+
+    if model is None or not selected_ids:
+        return redirect(url_for("dashboard", section="settings"))
+
+    session = SessionLocal()
+
+    try:
+        restored_count = (
+            session.query(model)
+            .filter(model.id.in_(selected_ids), model.deleted_at.is_not(None))
+            .update({model.deleted_at: None}, synchronize_session=False)
+        )
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        SessionLocal.remove()
+
+    return redirect(url_for("dashboard", section="settings", restored=f"{data_type}-{restored_count}"))
+
+
 @app.route("/teachers", methods=["POST"])
 @login_required
 def create_teacher():
@@ -843,6 +941,26 @@ def delete_class(class_id):
     return redirect(url_for("dashboard", section="classes"))
 
 
+@app.route("/classes/<int:class_id>/restore", methods=["POST"])
+@login_required
+def restore_class(class_id):
+    session = SessionLocal()
+
+    try:
+        school_class = session.get(SchoolClass, class_id)
+
+        if school_class:
+            school_class.deleted_at = None
+            session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        SessionLocal.remove()
+
+    return redirect(url_for("dashboard", section="settings"))
+
+
 @app.route("/students/<int:student_id>/delete", methods=["POST"])
 @login_required
 def delete_student(student_id):
@@ -863,6 +981,26 @@ def delete_student(student_id):
     return redirect(url_for("dashboard", section="students"))
 
 
+@app.route("/students/<int:student_id>/restore", methods=["POST"])
+@login_required
+def restore_student(student_id):
+    session = SessionLocal()
+
+    try:
+        student = session.get(Student, student_id)
+
+        if student:
+            student.deleted_at = None
+            session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        SessionLocal.remove()
+
+    return redirect(url_for("dashboard", section="settings"))
+
+
 @app.route("/teachers/<int:teacher_id>/delete", methods=["POST"])
 @login_required
 def delete_teacher(teacher_id):
@@ -881,6 +1019,26 @@ def delete_teacher(teacher_id):
         SessionLocal.remove()
 
     return redirect(url_for("dashboard", section="teachers"))
+
+
+@app.route("/teachers/<int:teacher_id>/restore", methods=["POST"])
+@login_required
+def restore_teacher(teacher_id):
+    session = SessionLocal()
+
+    try:
+        teacher = session.get(Teacher, teacher_id)
+
+        if teacher:
+            teacher.deleted_at = None
+            session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        SessionLocal.remove()
+
+    return redirect(url_for("dashboard", section="settings"))
 
 
 @app.route("/users/<int:user_id>/delete", methods=["POST"])
