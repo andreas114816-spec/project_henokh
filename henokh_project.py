@@ -801,6 +801,126 @@ echo "Database: {DB_NAME}"
     run_wsl_script(script, user="root")
 
 
+def pull_project():
+    require_windows()
+
+    if not is_distro_installed():
+        raise RuntimeError(
+            f"{DISTRO_NAME} is not installed.\n"
+            "Run this first:\n"
+            "python henokh_project.py install"
+        )
+
+    if not is_project_ready():
+        raise RuntimeError(
+            "Project prerequisites are missing.\n"
+            "Run this first:\n"
+            "python henokh_project.py install"
+        )
+
+    start_mariadb_for_run()
+
+    log("Pulling latest project version and updating dependencies...")
+
+    script = f"""
+set -e
+
+cd "$HOME/{PROJECT_FOLDER}"
+
+echo "Current folder: $(pwd)"
+
+if [ ! -d ".git" ]; then
+    echo "ERROR: This folder is not a Git repository."
+    exit 1
+fi
+
+if [ -f "{MARIADB_PORT_FILE}" ]; then
+    MARIADB_PORT="$(cat "{MARIADB_PORT_FILE}")"
+else
+    MARIADB_PORT="3306"
+fi
+
+ENV_FILE=".env"
+touch "$ENV_FILE"
+
+set_env_value() {{
+    KEY="$1"
+    VALUE="$2"
+
+    if grep -q "^${{KEY}}=" "$ENV_FILE"; then
+        sed -i "s|^${{KEY}}=.*|${{KEY}}=${{VALUE}}|" "$ENV_FILE"
+    else
+        echo "${{KEY}}=${{VALUE}}" >> "$ENV_FILE"
+    fi
+}}
+
+set_env_value "MARIADB_HOST" "127.0.0.1"
+set_env_value "MARIADB_PORT" "$MARIADB_PORT"
+set_env_value "DB_HOST" "127.0.0.1"
+set_env_value "DB_PORT" "$MARIADB_PORT"
+set_env_value "DB_NAME" "{DB_NAME}"
+set_env_value "DB_USER" "{DB_USER}"
+set_env_value "DB_PASSWORD" "{DB_PASSWORD}"
+set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
+
+echo "Saving local changes temporarily..."
+git stash push -u -m "auto-stash-before-manual-pull" || true
+
+echo "Pulling latest changes..."
+git pull
+
+echo "Installing/updating requirements..."
+"{VENV_NAME}/bin/pip" install --progress-bar on -r requirements.txt
+
+echo "Repairing typing_extensions if needed..."
+"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
+
+echo "Repairing CPU Torch stack if needed..."
+"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
+
+echo "Repairing TensorFlow/Keras if needed..."
+"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
+
+echo "Checking Gunicorn..."
+if ! "{VENV_NAME}/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
+    "{VENV_NAME}/bin/pip" install --progress-bar on gunicorn
+fi
+
+echo "Loading .env..."
+set -a
+. "$ENV_FILE"
+set +a
+
+echo "Checking MobileFaceNet model..."
+if [ -f "$MOBILEFACENET_MODEL_PATH" ]; then
+    echo "MobileFaceNet model found: $MOBILEFACENET_MODEL_PATH"
+else
+    echo "Cloning foamliu/MobileFaceNet..."
+    mkdir -p "model"
+
+    if [ -d "model/MobileFaceNet" ]; then
+        BACKUP_NAME="model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
+        echo "Moving incomplete MobileFaceNet folder to: $BACKUP_NAME"
+        mv "model/MobileFaceNet" "$BACKUP_NAME"
+    fi
+
+    git clone "{MOBILEFACENET_REPO_URL}" "model/MobileFaceNet"
+fi
+
+echo "Running database migrations..."
+"{VENV_NAME}/bin/python" -m flask --app app migrate-db
+echo "Database migrations finished."
+
+echo "Seeding default admin user..."
+"{VENV_NAME}/bin/python" -m flask --app app seed-admin
+echo "Default admin user check finished."
+
+echo "Project pull/update complete."
+"""
+
+    run_wsl_script(script)
+
+
 def kill_app_port_for_run():
     log(f"Checking app port {GUNICORN_PORT} before starting program...")
 
@@ -864,7 +984,7 @@ def run_program():
     start_mariadb_for_run()
     kill_app_port_for_run()
 
-    log("Starting project with auto-pull...")
+    log("Starting project...")
 
     script = f"""
 set -e
@@ -910,61 +1030,10 @@ set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/model/MobileFaceNet/pretrained_mo
 echo "Database environment:"
 grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD|MOBILEFACENET_MODEL_PATH)=" "$ENV_FILE" || true
 
-if [ "{1 if AUTO_GIT_PULL else 0}" = "1" ]; then
-    echo "Saving local changes temporarily..."
-    git stash push -u -m "auto-stash-before-run-pull" || true
-
-    echo "Pulling latest changes..."
-    git pull || true
-else
-    echo "Auto git pull disabled. Using current project files."
-fi
-
-echo "Installing/updating requirements..."
-"{VENV_NAME}/bin/pip" install --progress-bar on -r requirements.txt
-
-echo "Repairing typing_extensions if needed..."
-"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
-
-echo "Repairing CPU Torch stack if needed..."
-"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
-
-echo "Repairing TensorFlow/Keras if needed..."
-"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
-
-echo "Checking Gunicorn..."
-if ! "{VENV_NAME}/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
-    "{VENV_NAME}/bin/pip" install --progress-bar on gunicorn
-fi
-
 echo "Loading .env..."
 set -a
 . "$ENV_FILE"
 set +a
-
-echo "Checking MobileFaceNet model..."
-if [ -f "$MOBILEFACENET_MODEL_PATH" ]; then
-    echo "MobileFaceNet model found: $MOBILEFACENET_MODEL_PATH"
-else
-    echo "Cloning foamliu/MobileFaceNet..."
-    mkdir -p "model"
-
-    if [ -d "model/MobileFaceNet" ]; then
-        BACKUP_NAME="model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
-        echo "Moving incomplete MobileFaceNet folder to: $BACKUP_NAME"
-        mv "model/MobileFaceNet" "$BACKUP_NAME"
-    fi
-
-    git clone "{MOBILEFACENET_REPO_URL}" "model/MobileFaceNet"
-fi
-
-echo "Running database migrations before app start..."
-"{VENV_NAME}/bin/python" -m flask --app app migrate-db
-echo "Database migrations finished."
-
-echo "Seeding default admin user..."
-"{VENV_NAME}/bin/python" -m flask --app app seed-admin
-echo "Default admin user check finished."
 
 echo
 echo "========================================"
@@ -1029,7 +1098,12 @@ def main():
 
     subparsers.add_parser(
         "run",
-        help="Start MariaDB, auto-pull project, update .env, run migrations, and run Gunicorn"
+        help="Start MariaDB and run Gunicorn without pulling or updating dependencies"
+    )
+
+    subparsers.add_parser(
+        "pull",
+        help="Pull latest project version, update dependencies, and run database updates"
     )
 
     subparsers.add_parser(
@@ -1063,6 +1137,9 @@ def main():
 
         elif args.command == "run":
             run_program()
+
+        elif args.command == "pull":
+            pull_project()
 
         elif args.command == "status":
             show_status()

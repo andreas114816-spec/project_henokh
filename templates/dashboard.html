@@ -169,12 +169,11 @@
 
                 <section class="rounded-lg bg-white p-5 shadow">
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[520px] text-left text-sm">
+                        <table class="w-full min-w-[420px] text-left text-sm">
                             <thead class="border-b text-xs uppercase text-gray-500">
                                 <tr>
                                     <th class="py-3 pr-4">Name</th>
                                     <th class="py-3 pr-4">NIP</th>
-                                    <th class="py-3 pr-4">Subject</th>
                                     <th class="py-3 text-right">Action</th>
                                 </tr>
                             </thead>
@@ -183,7 +182,6 @@
                                     <tr>
                                         <td class="py-3 pr-4 font-medium">{{ teacher.name }}</td>
                                         <td class="py-3 pr-4">{{ teacher.nip }}</td>
-                                        <td class="py-3 pr-4">{{ teacher.subject or "-" }}</td>
                                         <td class="py-3 text-right">
                                             <a href="{{ url_for('edit_teacher', teacher_id=teacher.id) }}" class="mr-3 text-sm font-medium text-blue-600 hover:text-blue-700">
                                                 Edit
@@ -203,7 +201,7 @@
                                     </tr>
                                 {% else %}
                                     <tr>
-                                        <td colspan="4" class="py-6 text-center text-gray-500">No teachers registered.</td>
+                                        <td colspan="3" class="py-6 text-center text-gray-500">No teachers registered.</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -229,7 +227,7 @@
 
                 <section class="rounded-lg bg-white p-5 shadow">
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[980px] text-left text-sm">
+                        <table class="w-full min-w-[820px] text-left text-sm">
                             <thead class="border-b text-xs uppercase text-gray-500">
                                 <tr>
                                     <th class="py-3 pr-4">Class Name</th>
@@ -237,7 +235,6 @@
                                     <th class="py-3 pr-4">Class Time</th>
                                     <th class="py-3 pr-4">Presence Time</th>
                                     <th class="py-3 pr-4">Teacher</th>
-                                    <th class="py-3 pr-4">Students</th>
                                     <th class="py-3 text-right">Action</th>
                                 </tr>
                             </thead>
@@ -267,13 +264,6 @@
                                                 -
                                             {% endif %}
                                         </td>
-                                        <td class="py-3 pr-4">
-                                            {% if school_class.students %}
-                                                {{ school_class.students|map(attribute='name')|join(', ') }}
-                                            {% else %}
-                                                No students assigned
-                                            {% endif %}
-                                        </td>
                                         <td class="py-3 text-right">
                                             <a href="{{ url_for('edit_class', class_id=school_class.id) }}" class="mr-3 text-sm font-medium text-blue-600 hover:text-blue-700">
                                                 Edit
@@ -293,7 +283,7 @@
                                     </tr>
                                 {% else %}
                                     <tr>
-                                        <td colspan="7" class="py-6 text-center text-gray-500">No classes configured.</td>
+                                        <td colspan="6" class="py-6 text-center text-gray-500">No classes configured.</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -605,7 +595,7 @@
                                 data-confirm-action="Restore Selected">
                                 <input type="hidden" name="data_type" value="teachers">
                                 <div class="max-h-80 overflow-auto">
-                                    <table class="w-full min-w-[640px] text-left text-sm">
+                                    <table class="w-full min-w-[540px] text-left text-sm">
                                         <thead class="sticky top-0 border-b bg-white text-xs uppercase text-gray-500">
                                             <tr>
                                                 <th class="w-12 px-4 py-3">
@@ -613,7 +603,6 @@
                                                 </th>
                                                 <th class="py-3 pr-4">Name</th>
                                                 <th class="py-3 pr-4">NIP</th>
-                                                <th class="py-3 pr-4">Subject</th>
                                                 <th class="py-3 pr-4">Archived</th>
                                             </tr>
                                         </thead>
@@ -625,12 +614,11 @@
                                                     </td>
                                                     <td class="py-3 pr-4 font-medium">{{ teacher.name }}</td>
                                                     <td class="py-3 pr-4">{{ teacher.nip }}</td>
-                                                    <td class="py-3 pr-4">{{ teacher.subject or "-" }}</td>
                                                     <td class="py-3 pr-4">{{ teacher.deleted_at.strftime("%Y-%m-%d %H:%M") if teacher.deleted_at else "-" }}</td>
                                                 </tr>
                                             {% else %}
                                                 <tr>
-                                                    <td colspan="5" class="py-6 text-center text-gray-500">No archived teachers.</td>
+                                                    <td colspan="4" class="py-6 text-center text-gray-500">No archived teachers.</td>
                                                 </tr>
                                             {% endfor %}
                                         </tbody>

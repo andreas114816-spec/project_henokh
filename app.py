@@ -59,6 +59,10 @@ def parse_optional_int(value):
     return int(value) if value.isdigit() else None
 
 
+def is_digits_only(value):
+    return bool(value) and value.isdigit()
+
+
 def parse_date_field(value):
     value = (value or "").strip()
 
@@ -392,10 +396,7 @@ def dashboard():
         )
         class_query = (
             session.query(SchoolClass)
-            .options(
-                selectinload(SchoolClass.teacher),
-                selectinload(SchoolClass.students)
-            )
+            .options(selectinload(SchoolClass.teacher))
             .filter(SchoolClass.deleted_at.is_(None))
             .order_by(SchoolClass.created_at.desc())
         )
@@ -408,8 +409,7 @@ def dashboard():
             ))
             teacher_query = teacher_query.filter(or_(
                 Teacher.name.ilike(search_pattern),
-                Teacher.nip.ilike(search_pattern),
-                Teacher.subject.ilike(search_pattern)
+                Teacher.nip.ilike(search_pattern)
             ))
             class_query = class_query.filter(or_(
                 SchoolClass.name.ilike(search_pattern),
@@ -772,9 +772,11 @@ def create_teacher():
     teacher_id = parse_optional_int(request.form.get("teacher_id"))
     name = request.form.get("name", "").strip()
     nip = request.form.get("nip", "").strip()
-    subject = request.form.get("subject", "").strip() or None
 
     if not name or not nip:
+        return redirect(url_for("dashboard", section="teachers", error="teacher"))
+
+    if not is_digits_only(nip):
         return redirect(url_for("dashboard", section="teachers", error="teacher"))
 
     session = SessionLocal()
@@ -798,12 +800,11 @@ def create_teacher():
             teacher = session.query(Teacher).filter_by(nip=nip).one_or_none()
 
         if teacher is None:
-            teacher = Teacher(name=name, nip=nip, subject=subject)
+            teacher = Teacher(name=name, nip=nip)
             session.add(teacher)
         else:
             teacher.name = name
             teacher.nip = nip
-            teacher.subject = subject
 
         teacher.deleted_at = None
         session.commit()
@@ -1559,7 +1560,7 @@ def create_student():
         return jsonify({"success": False, "message": "No student data received"}), 400
 
     name = data.get("name", "").strip()
-    nim = data.get("nim", "").strip()
+    nim = str(data.get("nim", "")).strip()
     student_id = parse_optional_int(data.get("studentId"))
     image_data = data.get("image", "")
 
@@ -1567,6 +1568,12 @@ def create_student():
         return jsonify({
             "success": False,
             "message": "Name and NIM are required"
+        }), 400
+
+    if not is_digits_only(nim):
+        return jsonify({
+            "success": False,
+            "message": "NIM must contain numbers only"
         }), 400
 
     session = SessionLocal()

@@ -57,7 +57,7 @@
                         <option value="">No teacher assigned</option>
                         {% for teacher in teachers %}
                             <option value="{{ teacher.id }}" {% if school_class is defined and school_class and school_class.teacher_id == teacher.id %}selected{% endif %}>
-                                {{ teacher.name }}{% if teacher.subject %} - {{ teacher.subject }}{% endif %}{% if teacher.deleted_at %} (archived){% endif %}
+                                {{ teacher.name }}{% if teacher.deleted_at %} (archived){% endif %}
                             </option>
                         {% endfor %}
                     </select>

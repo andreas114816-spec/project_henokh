@@ -194,6 +194,16 @@ $(document).ready(function () {
     $("#studentForm").on("submit", function (event) {
         event.preventDefault();
 
+        const nim = $("#studentNim").val().trim();
+
+        if (!/^[0-9]+$/.test(nim)) {
+            $("#studentStatus")
+                .removeClass("text-green-600")
+                .addClass("text-red-600")
+                .text("NIM must contain numbers only.");
+            return;
+        }
+
         const image = captureImage();
 
         if (!image && !isEditing) {
@@ -217,7 +227,7 @@ $(document).ready(function () {
             data: JSON.stringify({
                 studentId: $("#studentId").val() || null,
                 name: $("#studentName").val(),
-                nim: $("#studentNim").val(),
+                nim: nim,
                 image: image
             }),
             success: function (response) {

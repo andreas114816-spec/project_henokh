@@ -41,6 +41,9 @@
                         id="studentNim"
                         name="nim"
                         type="text"
+                        inputmode="numeric"
+                        pattern="[0-9]+"
+                        title="NIM must contain numbers only"
                         value="{{ student.nim if student else '' }}"
                         required
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100">
