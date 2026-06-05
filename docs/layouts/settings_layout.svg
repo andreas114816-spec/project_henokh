@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="980" viewBox="0 0 1200 980" role="img" aria-label="Settings section layout visualization">
+  <style>
+    .bg{fill:#f8fafc}.side{fill:#fff;stroke:#cbd5e1;stroke-width:2}.card{fill:#fff;stroke:#263247;stroke-width:2}.soft{fill:#eff6ff;stroke:#bfdbfe;stroke-width:1.5}.danger{fill:#fff;stroke:#fecaca;stroke-width:2}.head{fill:#263247}.blue{fill:#2563eb}.red{fill:#dc2626}.input{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.txt{font:15px Arial,sans-serif;fill:#334155}.muted{font:13px Arial,sans-serif;fill:#64748b}.title{font:700 22px Arial,sans-serif;fill:#111827}.sub{font:700 17px Arial,sans-serif;fill:#111827}.white{font:700 14px Arial,sans-serif;fill:#fff}.redText{font:700 17px Arial,sans-serif;fill:#b91c1c}
+  </style>
+  <rect class="bg" width="1200" height="980"/>
+  <rect class="side" width="260" height="980"/>
+  <text class="title" x="32" y="64">Sidebar</text>
+  <rect class="soft" x="28" y="110" width="204" height="38" rx="7"/>
+  <rect class="soft" x="28" y="166" width="204" height="38" rx="7"/>
+  <rect class="soft" x="28" y="222" width="204" height="38" rx="7"/>
+  <rect class="soft" x="28" y="278" width="204" height="38" rx="7"/>
+  <rect class="blue" x="28" y="334" width="204" height="38" rx="7"/>
+  <text class="white" x="130" y="358" text-anchor="middle">Settings active</text>
+
+  <text class="title" x="310" y="70">Settings</text>
+  <text class="muted" x="310" y="98">Application behavior, users, archived data, and cleanup</text>
+
+  <rect class="card" x="310" y="130" width="820" height="135" rx="8"/>
+  <text class="sub" x="335" y="172">Anti-spoof detection</text>
+  <text class="muted" x="335" y="198">Toggle face anti-spoof behavior</text>
+  <rect class="input" x="935" y="160" width="82" height="34" rx="17"/>
+  <circle cx="996" cy="177" r="13" fill="#2563eb"/>
+  <rect class="blue" x="335" y="220" width="130" height="34" rx="7"/>
+  <text class="white" x="400" y="242" text-anchor="middle">Save Settings</text>
+
+  <rect class="card" x="310" y="300" width="820" height="180" rx="8"/>
+  <text class="sub" x="335" y="342">User Accounts</text>
+  <text class="muted" x="335" y="368">Registered users table</text>
+  <rect class="blue" x="1010" y="325" width="95" height="34" rx="7"/>
+  <text class="white" x="1058" y="347" text-anchor="middle">Add User</text>
+  <rect class="head" x="335" y="395" width="770" height="34" rx="6"/>
+  <text class="white" x="355" y="417">Username</text>
+  <text class="white" x="610" y="417">Created</text>
+  <text class="white" x="980" y="417">Action</text>
+  <line x1="335" y1="450" x2="1105" y2="450" stroke="#e2e8f0" stroke-width="2"/>
+
+  <rect class="card" x="310" y="515" width="820" height="300" rx="8"/>
+  <text class="sub" x="335" y="557">Archived Data</text>
+  <text class="muted" x="335" y="583">Restore archived students, teachers, or classes</text>
+  <rect class="soft" x="335" y="615" width="240" height="160" rx="8"/>
+  <text class="sub" x="360" y="650">Students</text>
+  <text class="muted" x="360" y="676">Archived list + checkboxes</text>
+  <rect class="blue" x="360" y="720" width="120" height="34" rx="7"/><text class="white" x="420" y="742" text-anchor="middle">Restore</text>
+  <rect class="soft" x="600" y="615" width="240" height="160" rx="8"/>
+  <text class="sub" x="625" y="650">Teachers</text>
+  <text class="muted" x="625" y="676">Archived list + checkboxes</text>
+  <rect class="blue" x="625" y="720" width="120" height="34" rx="7"/><text class="white" x="685" y="742" text-anchor="middle">Restore</text>
+  <rect class="soft" x="865" y="615" width="240" height="160" rx="8"/>
+  <text class="sub" x="890" y="650">Classes</text>
+  <text class="muted" x="890" y="676">Archived list + checkboxes</text>
+  <rect class="blue" x="890" y="720" width="120" height="34" rx="7"/><text class="white" x="950" y="742" text-anchor="middle">Restore</text>
+
+  <rect class="danger" x="310" y="850" width="820" height="95" rx="8"/>
+  <text class="redText" x="335" y="887">Danger Zone</text>
+  <text class="muted" x="335" y="914">Permanent cleanup for archived records</text>
+  <rect class="red" x="945" y="880" width="160" height="38" rx="7"/>
+  <text class="white" x="1025" y="904" text-anchor="middle">Cleanup Archived</text>
+</svg>

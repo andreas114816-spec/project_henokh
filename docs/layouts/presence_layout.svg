@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="760" viewBox="0 0 1100 760" role="img" aria-label="Presence camera layout visualization">
+  <style>
+    .bg{fill:#f3f4f6}.card{fill:#fff;stroke:#263247;stroke-width:2}.video{fill:#111827}.panel{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.btn{fill:#2563eb}.danger{fill:#dc2626}.txt{font:15px Arial,sans-serif;fill:#334155}.title{font:700 22px Arial,sans-serif;fill:#111827}.white{font:700 14px Arial,sans-serif;fill:#fff}
+  </style>
+  <rect class="bg" width="1100" height="760"/>
+  <rect class="card" x="80" y="60" width="940" height="650" rx="12"/>
+  <text class="title" x="115" y="112">Presence Camera</text>
+  <rect class="panel" x="115" y="145" width="360" height="48" rx="7"/><text class="txt" x="135" y="175">Class selector</text>
+  <rect class="video" x="115" y="230" width="570" height="340" rx="10"/><text class="white" x="400" y="405" text-anchor="middle">Live video + detection canvas</text>
+  <rect class="btn" x="285" y="600" width="110" height="44" rx="7"/><text class="white" x="340" y="627" text-anchor="middle">Start</text>
+  <rect class="danger" x="415" y="600" width="110" height="44" rx="7"/><text class="white" x="470" y="627" text-anchor="middle">Stop</text>
+  <rect class="panel" x="720" y="230" width="265" height="340" rx="8"/>
+  <text class="title" x="745" y="272">Detected Students</text>
+  <rect class="card" x="745" y="310" width="215" height="58" rx="7"/><text class="txt" x="765" y="346">Result item</text>
+  <rect class="card" x="745" y="390" width="215" height="58" rx="7"/><text class="txt" x="765" y="426">Result item</text>
+</svg>
+

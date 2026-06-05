@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presence Camera View</title>
+    <link rel="stylesheet" href="assets/preview.css">
+</head>
+<body>
+    <main class="screen login-screen">
+        <div class="panel" style="width:min(100%,960px);">
+            <div class="section-head"><div><h2>Presence Camera</h2><p class="helper">Live recognition for selected class.</p></div><a class="btn btn-light" href="#">Back</a></div>
+            <div class="field" style="max-width:420px;margin-bottom:18px;"><label>Class</label><div class="select">Computer Vision - CV-401</div></div>
+            <div class="two-col" style="grid-template-columns:minmax(0,2fr) minmax(280px,1fr);">
+                <div>
+                    <div class="video-box">Live video + face boxes</div>
+                    <div class="camera-actions"><a class="btn btn-primary" href="#">Start</a><a class="btn btn-red" href="#">Stop</a></div>
+                    <p class="helper center" style="margin-top:14px;">Camera running. Detecting faces...</p>
+                </div>
+                <section class="panel" style="box-shadow:none;border:1px solid var(--line);">
+                    <h3>Detected Students</h3><p class="helper">Computer Vision - CV-401</p>
+                    <div class="results"><div class="result-item"><strong>Andi Pratama</strong><br><span class="status green">Presence</span></div><div class="result-item"><strong>Siti Rahma</strong><br><span class="status yellow">Late</span></div></div>
+                </section>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

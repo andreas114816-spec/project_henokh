@@ -1,30 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="980" viewBox="0 0 1480 980" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" role="img" aria-labelledby="title desc">
   <title id="title">Henokh Project Crow's Foot ERD</title>
-  <desc id="desc">Entity relationship diagram for users, app settings, teachers, students, classes, class_students, and attendances.</desc>
+  <desc id="desc">A clean crow's-foot entity relationship diagram for the Henokh project database model.</desc>
   <defs>
     <style>
-      .page { fill: #f7f8fb; }
-      .entity { fill: #ffffff; stroke: #243047; stroke-width: 2; }
-      .header { fill: #243047; }
+      .page { fill: #f8fafc; }
+      .entity { fill: #ffffff; stroke: #263247; stroke-width: 2; }
+      .header { fill: #263247; }
       .headerText { fill: #ffffff; font: 700 18px Arial, sans-serif; }
       .field { fill: #263247; font: 14px Arial, sans-serif; }
       .key { fill: #0f766e; font: 700 14px Arial, sans-serif; }
-      .note { fill: #6b7280; font: 12px Arial, sans-serif; }
-      .rel { stroke: #45556f; stroke-width: 2.5; fill: none; }
-      .crow { stroke: #45556f; stroke-width: 2.5; fill: none; stroke-linecap: round; }
+      .note { fill: #64748b; font: 12px Arial, sans-serif; }
+      .rel { stroke: #475569; stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+      .mark { stroke: #475569; stroke-width: 2.5; fill: none; stroke-linecap: round; }
+      .labelBox { fill: #f8fafc; }
       .label { fill: #334155; font: 13px Arial, sans-serif; }
-      .title { fill: #111827; font: 700 30px Arial, sans-serif; }
-      .subtitle { fill: #4b5563; font: 15px Arial, sans-serif; }
-      .legendBox { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
     </style>
   </defs>
 
-  <rect class="page" width="1480" height="980"/>
+  <rect class="page" width="1600" height="1060"/>
 
-  <text class="title" x="60" y="58">Henokh Project ERD</text>
-  <text class="subtitle" x="60" y="86">Crow's-foot relationship visualization based on models/db_models.py</text>
-
-  <g id="teachers" transform="translate(80 160)">
+  <!-- Top row -->
+  <g id="teachers" transform="translate(70 140)">
     <rect class="entity" width="300" height="210" rx="8"/>
     <rect class="header" width="300" height="42" rx="8"/>
     <path class="header" d="M0 34 H300 V42 H0 Z"/>
@@ -32,12 +28,11 @@
     <text class="key" x="18" y="70">PK</text><text class="field" x="58" y="70">id</text>
     <text class="field" x="58" y="96">name</text>
     <text class="key" x="18" y="122">UK</text><text class="field" x="58" y="122">NIP</text>
-    <text class="field" x="58" y="148">subject</text><text class="note" x="154" y="148">nullable</text>
-    <text class="field" x="58" y="174">deleted_at</text><text class="note" x="154" y="174">nullable</text>
-    <text class="field" x="58" y="200">created_at</text>
+    <text class="field" x="58" y="148">deleted_at</text><text class="note" x="154" y="148">nullable</text>
+    <text class="field" x="58" y="174">created_at</text>
   </g>
 
-  <g id="classes" transform="translate(580 130)">
+  <g id="classes" transform="translate(560 110)">
     <rect class="entity" width="320" height="315" rx="8"/>
     <rect class="header" width="320" height="42" rx="8"/>
     <path class="header" d="M0 34 H320 V42 H0 Z"/>
@@ -54,7 +49,7 @@
     <text class="field" x="58" y="304">created_at, updated_at</text>
   </g>
 
-  <g id="students" transform="translate(1080 160)">
+  <g id="students" transform="translate(1130 140)">
     <rect class="entity" width="320" height="235" rx="8"/>
     <rect class="header" width="320" height="42" rx="8"/>
     <path class="header" d="M0 34 H320 V42 H0 Z"/>
@@ -68,19 +63,20 @@
     <text class="field" x="58" y="226">updated_at</text>
   </g>
 
-  <g id="class_students" transform="translate(585 560)">
-    <rect class="entity" width="310" height="118" rx="8"/>
-    <rect class="header" width="310" height="42" rx="8"/>
-    <path class="header" d="M0 34 H310 V42 H0 Z"/>
+  <!-- Middle row -->
+  <g id="class_students" transform="translate(840 520)">
+    <rect class="entity" width="320" height="118" rx="8"/>
+    <rect class="header" width="320" height="42" rx="8"/>
+    <path class="header" d="M0 34 H320 V42 H0 Z"/>
     <text class="headerText" x="18" y="27">CLASS_STUDENTS</text>
     <text class="key" x="18" y="70">PK/FK</text><text class="field" x="86" y="70">class_id</text>
     <text class="key" x="18" y="96">PK/FK</text><text class="field" x="86" y="96">student_id</text>
   </g>
 
-  <g id="attendances" transform="translate(1030 540)">
-    <rect class="entity" width="370" height="255" rx="8"/>
-    <rect class="header" width="370" height="42" rx="8"/>
-    <path class="header" d="M0 34 H370 V42 H0 Z"/>
+  <g id="attendances" transform="translate(840 790)">
+    <rect class="entity" width="380" height="255" rx="8"/>
+    <rect class="header" width="380" height="42" rx="8"/>
+    <path class="header" d="M0 34 H380 V42 H0 Z"/>
     <text class="headerText" x="18" y="27">ATTENDANCES</text>
     <text class="key" x="18" y="70">PK</text><text class="field" x="58" y="70">id</text>
     <text class="key" x="18" y="96">FK</text><text class="field" x="58" y="96">class_id</text>
@@ -92,7 +88,8 @@
     <text class="note" x="58" y="248">Unique: class_id + student_id + attendance_date</text>
   </g>
 
-  <g id="users" transform="translate(80 610)">
+  <!-- Standalone entities -->
+  <g id="users" transform="translate(70 560)">
     <rect class="entity" width="300" height="145" rx="8"/>
     <rect class="header" width="300" height="42" rx="8"/>
     <path class="header" d="M0 34 H300 V42 H0 Z"/>
@@ -103,7 +100,7 @@
     <text class="field" x="58" y="140">created_at</text>
   </g>
 
-  <g id="app_settings" transform="translate(80 800)">
+  <g id="app_settings" transform="translate(70 780)">
     <rect class="entity" width="300" height="120" rx="8"/>
     <rect class="header" width="300" height="42" rx="8"/>
     <path class="header" d="M0 34 H300 V42 H0 Z"/>
@@ -113,50 +110,49 @@
     <text class="field" x="58" y="112">value, updated_at</text>
   </g>
 
-  <!-- Relationship: teachers to classes -->
-  <path class="rel" d="M380 265 H580"/>
-  <text class="label" x="450" y="250">teaches</text>
-  <line class="crow" x1="404" y1="252" x2="404" y2="278"/>
-  <circle cx="558" cy="265" r="7" fill="#f7f8fb" stroke="#45556f" stroke-width="2.5"/>
-  <line class="crow" x1="570" y1="252" x2="570" y2="278"/>
-  <path class="crow" d="M570 265 L580 253 M570 265 L580 277"/>
+  <!-- TEACHERS one to CLASSES zero-many -->
+  <path class="rel" d="M370 245 H560"/>
+  <rect class="labelBox" x="446" y="229" width="70" height="20"/>
+  <text class="label" x="456" y="244">teaches</text>
+  <line class="mark" x1="393" y1="232" x2="393" y2="258"/>
+  <circle cx="538" cy="245" r="7" fill="#f8fafc" stroke="#475569" stroke-width="2.5"/>
+  <line class="mark" x1="548" y1="232" x2="548" y2="258"/>
+  <path class="mark" d="M548 245 L560 232 M548 245 L560 258"/>
 
-  <!-- Relationship: classes to class_students -->
-  <path class="rel" d="M740 445 V560"/>
-  <text class="label" x="755" y="510">has</text>
-  <line class="crow" x1="727" y1="468" x2="753" y2="468"/>
-  <circle cx="740" cy="538" r="7" fill="#f7f8fb" stroke="#45556f" stroke-width="2.5"/>
-  <line class="crow" x1="727" y1="550" x2="753" y2="550"/>
-  <path class="crow" d="M740 550 L728 560 M740 550 L752 560"/>
+  <!-- CLASSES one to CLASS_STUDENTS zero-many -->
+  <path class="rel" d="M720 425 V470 H930 V520"/>
+  <rect class="labelBox" x="782" y="454" width="35" height="20"/>
+  <text class="label" x="789" y="469">has</text>
+  <line class="mark" x1="707" y1="450" x2="733" y2="450"/>
+  <circle cx="930" cy="497" r="7" fill="#f8fafc" stroke="#475569" stroke-width="2.5"/>
+  <line class="mark" x1="917" y1="508" x2="943" y2="508"/>
+  <path class="mark" d="M930 508 L918 520 M930 508 L942 520"/>
 
-  <!-- Relationship: students to class_students -->
-  <path class="rel" d="M1080 315 H940 Q895 315 895 360 V620 H895"/>
-  <text class="label" x="952" y="300">enrolls</text>
-  <line class="crow" x1="1056" y1="302" x2="1056" y2="328"/>
-  <circle cx="917" cy="620" r="7" fill="#f7f8fb" stroke="#45556f" stroke-width="2.5"/>
-  <line class="crow" x1="905" y1="607" x2="905" y2="633"/>
-  <path class="crow" d="M905 620 L895 608 M905 620 L895 632"/>
+  <!-- STUDENTS one to CLASS_STUDENTS zero-many, routed above middle row -->
+  <path class="rel" d="M1290 375 V470 H1060 V520"/>
+  <rect class="labelBox" x="1168" y="454" width="55" height="20"/>
+  <text class="label" x="1178" y="469">enrolls</text>
+  <line class="mark" x1="1277" y1="398" x2="1303" y2="398"/>
+  <circle cx="1060" cy="497" r="7" fill="#f8fafc" stroke="#475569" stroke-width="2.5"/>
+  <line class="mark" x1="1047" y1="508" x2="1073" y2="508"/>
+  <path class="mark" d="M1060 508 L1048 520 M1060 508 L1072 520"/>
 
-  <!-- Relationship: classes to attendances -->
-  <path class="rel" d="M900 372 H970 Q1030 372 1030 545"/>
-  <text class="label" x="935" y="356">records</text>
-  <line class="crow" x1="923" y1="359" x2="923" y2="385"/>
-  <circle cx="1030" cy="522" r="7" fill="#f7f8fb" stroke="#45556f" stroke-width="2.5"/>
-  <line class="crow" x1="1017" y1="532" x2="1043" y2="532"/>
-  <path class="crow" d="M1030 532 L1018 545 M1030 532 L1042 545"/>
+  <!-- CLASSES one to ATTENDANCES zero-many, routed in a separate lane -->
+  <path class="rel" d="M650 425 V755 H920 V790"/>
+  <rect class="labelBox" x="668" y="740" width="60" height="20"/>
+  <text class="label" x="677" y="755">records</text>
+  <line class="mark" x1="637" y1="450" x2="663" y2="450"/>
+  <circle cx="920" cy="767" r="7" fill="#f8fafc" stroke="#475569" stroke-width="2.5"/>
+  <line class="mark" x1="907" y1="778" x2="933" y2="778"/>
+  <path class="mark" d="M920 778 L908 790 M920 778 L932 790"/>
 
-  <!-- Relationship: students to attendances -->
-  <path class="rel" d="M1240 395 V540"/>
-  <text class="label" x="1255" y="475">has</text>
-  <line class="crow" x1="1227" y1="418" x2="1253" y2="418"/>
-  <circle cx="1240" cy="518" r="7" fill="#f7f8fb" stroke="#45556f" stroke-width="2.5"/>
-  <line class="crow" x1="1227" y1="530" x2="1253" y2="530"/>
-  <path class="crow" d="M1240 530 L1228 540 M1240 530 L1252 540"/>
+  <!-- STUDENTS one to ATTENDANCES zero-many -->
+  <path class="rel" d="M1450 300 H1500 V755 H1100 V790"/>
+  <rect class="labelBox" x="1326" y="740" width="35" height="20"/>
+  <text class="label" x="1333" y="755">has</text>
+  <line class="mark" x1="1474" y1="287" x2="1474" y2="313"/>
+  <circle cx="1100" cy="767" r="7" fill="#f8fafc" stroke="#475569" stroke-width="2.5"/>
+  <line class="mark" x1="1087" y1="778" x2="1113" y2="778"/>
+  <path class="mark" d="M1100 778 L1088 790 M1100 778 L1112 790"/>
 
-  <g id="legend" transform="translate(455 820)">
-    <rect class="legendBox" width="500" height="100" rx="8"/>
-    <text class="field" x="18" y="30">Legend</text>
-    <text class="note" x="18" y="56">PK = Primary Key, FK = Foreign Key, UK = Unique Key</text>
-    <text class="note" x="18" y="78">Circle means optional zero; crow's foot means many; single bar means one.</text>
-  </g>
 </svg>

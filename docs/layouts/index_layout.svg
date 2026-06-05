@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="680" viewBox="0 0 900 680" role="img" aria-label="Login page layout visualization">
+  <style>
+    .bg{fill:#f3f4f6}.card{fill:#fff;stroke:#263247;stroke-width:2}.title{font:700 24px Arial,sans-serif;fill:#111827}.txt{font:15px Arial,sans-serif;fill:#334155}.input{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.primary{fill:#2563eb}.secondary{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}.btnText{font:700 15px Arial,sans-serif;fill:#fff}.dark{font:700 15px Arial,sans-serif;fill:#334155}
+  </style>
+  <rect class="bg" width="900" height="680"/>
+  <rect class="card" x="310" y="110" width="280" height="430" rx="12"/>
+  <text class="title" x="450" y="165" text-anchor="middle">Presence Login</text>
+  <text class="txt" x="450" y="195" text-anchor="middle">Intro / helper text</text>
+  <text class="txt" x="340" y="250">Username</text>
+  <rect class="input" x="340" y="265" width="220" height="42" rx="7"/>
+  <text class="txt" x="340" y="340">Password</text>
+  <rect class="input" x="340" y="355" width="220" height="42" rx="7"/>
+  <rect class="primary" x="340" y="440" width="100" height="44" rx="7"/>
+  <text class="btnText" x="390" y="467" text-anchor="middle">Login</text>
+  <rect class="secondary" x="460" y="440" width="100" height="44" rx="7"/>
+  <text class="dark" x="510" y="467" text-anchor="middle">Presence</text>
+</svg>
+

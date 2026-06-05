@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900" role="img" aria-label="Dashboard layout visualization">
+  <style>
+    .bg{fill:#f8fafc}.side{fill:#fff;stroke:#cbd5e1;stroke-width:2}.main{fill:#f3f4f6}.card{fill:#fff;stroke:#263247;stroke-width:2}.soft{fill:#eff6ff;stroke:#bfdbfe;stroke-width:1.5}.table{fill:#fff;stroke:#94a3b8;stroke-width:1.5}.head{fill:#263247}.title{font:700 20px Arial,sans-serif;fill:#111827}.white{font:700 16px Arial,sans-serif;fill:#fff}.txt{font:14px Arial,sans-serif;fill:#334155}.muted{font:13px Arial,sans-serif;fill:#64748b}.btn{fill:#2563eb}
+  </style>
+  <rect class="bg" width="1280" height="900"/>
+  <rect class="side" x="0" y="0" width="260" height="900"/>
+  <text class="title" x="32" y="64">Sidebar</text>
+  <rect class="soft" x="28" y="110" width="204" height="38" rx="7"/>
+  <rect class="soft" x="28" y="166" width="204" height="38" rx="7"/>
+  <rect class="soft" x="28" y="222" width="204" height="38" rx="7"/>
+  <rect class="soft" x="28" y="278" width="204" height="38" rx="7"/>
+  <rect class="main" x="260" y="0" width="1020" height="900"/>
+  <text class="title" x="310" y="62">Dashboard Content Area</text>
+  <rect class="soft" x="310" y="92" width="880" height="72" rx="8"/>
+  <text class="txt" x="330" y="123">Search, per-page selector, pagination controls</text>
+  <rect class="card" x="310" y="205" width="200" height="115" rx="8"/><text class="title" x="335" y="255">Students</text><text class="muted" x="335" y="285">Count card</text>
+  <rect class="card" x="535" y="205" width="200" height="115" rx="8"/><text class="title" x="560" y="255">Teachers</text><text class="muted" x="560" y="285">Count card</text>
+  <rect class="card" x="760" y="205" width="200" height="115" rx="8"/><text class="title" x="785" y="255">Classes</text><text class="muted" x="785" y="285">Count card</text>
+  <rect class="card" x="985" y="205" width="200" height="115" rx="8"/><text class="title" x="1010" y="255">Users</text><text class="muted" x="1010" y="285">Count card</text>
+  <rect class="card" x="310" y="370" width="880" height="210" rx="8"/>
+  <rect class="head" x="310" y="370" width="880" height="44" rx="8"/><text class="white" x="330" y="398">List Section Table</text>
+  <line x1="330" y1="455" x2="1170" y2="455" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="330" y1="500" x2="1170" y2="500" stroke="#e2e8f0" stroke-width="2"/>
+  <line x1="330" y1="545" x2="1170" y2="545" stroke="#e2e8f0" stroke-width="2"/>
+  <rect class="card" x="310" y="630" width="420" height="220" rx="8"/><text class="title" x="335" y="674">Presence Calendar</text><text class="muted" x="335" y="704">Class/month filter + calendar grid</text>
+  <rect class="card" x="760" y="630" width="430" height="220" rx="8"/><text class="title" x="785" y="674">Settings / Archive</text><text class="muted" x="785" y="704">Toggle, users, restore, cleanup</text>
+</svg>
+

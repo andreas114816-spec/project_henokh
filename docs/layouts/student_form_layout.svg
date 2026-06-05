@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-label="Student form layout visualization">
+  <style>
+    .bg{fill:#f8fafc}.side{fill:#fff;stroke:#cbd5e1;stroke-width:2}.card{fill:#fff;stroke:#263247;stroke-width:2}.input{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.video{fill:#111827}.btn{fill:#2563eb}.dark{fill:#111827}.txt{font:15px Arial,sans-serif;fill:#334155}.title{font:700 22px Arial,sans-serif;fill:#111827}.white{font:700 14px Arial,sans-serif;fill:#fff}
+  </style>
+  <rect class="bg" width="1200" height="760"/>
+  <rect class="side" width="260" height="760"/><text class="title" x="32" y="64">Sidebar</text>
+  <rect class="card" x="310" y="70" width="330" height="520" rx="10"/>
+  <text class="title" x="340" y="120">Student Form</text>
+  <text class="txt" x="340" y="175">Name</text><rect class="input" x="340" y="190" width="270" height="42" rx="7"/>
+  <text class="txt" x="340" y="265">NIM</text><rect class="input" x="340" y="280" width="270" height="42" rx="7"/>
+  <rect class="btn" x="340" y="370" width="270" height="44" rx="7"/><text class="white" x="475" y="397" text-anchor="middle">Save Student</text>
+  <rect class="input" x="340" y="435" width="270" height="44" rx="7"/><text class="txt" x="475" y="462" text-anchor="middle">Back to Dashboard</text>
+  <text class="txt" x="340" y="525">Status message</text>
+  <rect class="card" x="690" y="70" width="440" height="520" rx="10"/>
+  <text class="title" x="720" y="120">Face Capture</text>
+  <rect class="dark" x="900" y="95" width="70" height="36" rx="7"/><text class="white" x="935" y="118" text-anchor="middle">Start</text>
+  <rect class="input" x="985" y="95" width="70" height="36" rx="7"/><text class="txt" x="1020" y="118" text-anchor="middle">Stop</text>
+  <rect class="video" x="720" y="160" width="380" height="300" rx="10"/><text class="white" x="910" y="315" text-anchor="middle">Camera video + canvas</text>
+  <text class="txt" x="850" y="510">Camera status</text>
+</svg>
+

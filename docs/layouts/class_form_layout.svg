@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="900" viewBox="0 0 1100 900" role="img" aria-label="Class form layout visualization">
+  <style>
+    .bg{fill:#f8fafc}.side{fill:#fff;stroke:#cbd5e1;stroke-width:2}.card{fill:#fff;stroke:#263247;stroke-width:2}.input{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.list{fill:#fff;stroke:#94a3b8;stroke-width:1.5}.btn{fill:#2563eb}.txt{font:15px Arial,sans-serif;fill:#334155}.title{font:700 22px Arial,sans-serif;fill:#111827}.white{font:700 14px Arial,sans-serif;fill:#fff}
+  </style>
+  <rect class="bg" width="1100" height="900"/>
+  <rect class="side" width="260" height="900"/><text class="title" x="32" y="64">Sidebar</text>
+  <rect class="card" x="340" y="55" width="620" height="810" rx="10"/>
+  <text class="title" x="380" y="105">Class Form</text>
+  <rect class="input" x="380" y="155" width="250" height="42" rx="7"/><text class="txt" x="385" y="145">Class Name</text>
+  <rect class="input" x="670" y="155" width="250" height="42" rx="7"/><text class="txt" x="675" y="145">Class Code</text>
+  <rect class="input" x="380" y="245" width="540" height="42" rx="7"/><text class="txt" x="385" y="235">Teacher Select</text>
+  <rect class="input" x="380" y="340" width="250" height="42" rx="7"/><text class="txt" x="385" y="330">Start Time</text>
+  <rect class="input" x="670" y="340" width="250" height="42" rx="7"/><text class="txt" x="675" y="330">End Time</text>
+  <rect class="input" x="380" y="430" width="250" height="42" rx="7"/><text class="txt" x="385" y="420">Start Presence</text>
+  <rect class="input" x="670" y="430" width="250" height="42" rx="7"/><text class="txt" x="675" y="420">End Presence</text>
+  <text class="txt" x="380" y="535">Students checkbox list</text>
+  <rect class="list" x="380" y="550" width="540" height="190" rx="7"/>
+  <line x1="400" y1="595" x2="900" y2="595" stroke="#e2e8f0" stroke-width="2"/>
+  <line x1="400" y1="640" x2="900" y2="640" stroke="#e2e8f0" stroke-width="2"/>
+  <line x1="400" y1="685" x2="900" y2="685" stroke="#e2e8f0" stroke-width="2"/>
+  <rect class="btn" x="380" y="785" width="250" height="44" rx="7"/><text class="white" x="505" y="812" text-anchor="middle">Save Class</text>
+  <rect class="input" x="670" y="785" width="250" height="44" rx="7"/><text class="txt" x="795" y="812" text-anchor="middle">Back</text>
+</svg>
+

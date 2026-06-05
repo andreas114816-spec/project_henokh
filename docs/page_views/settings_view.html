@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings View</title>
+    <link rel="stylesheet" href="assets/preview.css">
+</head>
+<body>
+    <main class="screen app-shell">
+        <aside class="sidebar">
+            <div class="signed">Signed in as admin</div><div class="brand">Dashboard</div>
+            <nav class="nav"><a href="#">Overview</a><a href="#">Students</a><a href="#">Teachers</a><a href="#">Classes</a><a href="#">Presence</a><a class="active" href="#">Settings</a></nav>
+        </aside>
+        <section class="content settings-grid">
+            <div><h2>Settings</h2><p class="helper">Application behavior for face presence and student enrollment.</p></div>
+            <section class="panel"><div class="section-head" style="margin-bottom:0;"><div><h3>Anti-spoof detection</h3><p class="helper">When enabled, the system checks the real-person score.</p></div><div class="switch"></div></div><a class="btn btn-primary" href="#" style="margin-top:16px;">Save Settings</a></section>
+            <section class="panel">
+                <div class="section-head"><div><h3>User Accounts</h3><p class="helper">4 registered users</p></div><a class="btn btn-primary" href="#">Add User</a></div>
+                <table class="table"><thead><tr><th>Username</th><th>Created</th><th class="right">Action</th></tr></thead><tbody><tr><td><strong>admin</strong></td><td>2026-06-01</td><td class="right">Current user</td></tr><tr><td><strong>operator</strong></td><td>2026-06-03</td><td class="right"><span class="danger-link">Delete</span></td></tr></tbody></table>
+            </section>
+            <section class="panel">
+                <h3>Archived Data</h3><p class="helper">Restore archived students, teachers, or classes.</p>
+                <div class="archive-grid">
+                    <div class="archive-card"><header><strong>Students</strong><a class="btn btn-primary" href="#">Restore All</a></header><div class="body">3 archived records</div></div>
+                    <div class="archive-card"><header><strong>Teachers</strong><a class="btn btn-primary" href="#">Restore All</a></header><div class="body">1 archived record</div></div>
+                    <div class="archive-card"><header><strong>Classes</strong><a class="btn btn-primary" href="#">Restore All</a></header><div class="body">2 archived records</div></div>
+                </div>
+            </section>
+            <section class="panel danger-zone"><div class="section-head" style="margin-bottom:0;"><div><h3 style="color:var(--red)">Danger Zone</h3><p class="helper">Permanently delete archived data.</p></div><a class="btn btn-red" href="#">Cleanup Archived</a></div></section>
+        </section>
+    </main>
+</body>
+</html>

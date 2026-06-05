@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Henokh Presence Final Product Preview</title>
+    <style>
+        :root {
+            --bg: #f3f4f6;
+            --panel: #ffffff;
+            --ink: #111827;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --blue: #2563eb;
+            --blue-soft: #eff6ff;
+            --green: #16a34a;
+            --yellow: #ca8a04;
+            --red: #dc2626;
+            --dark: #111827;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .page {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .preview-title {
+            margin: 0 0 8px;
+            font-size: 30px;
+            line-height: 1.15;
+        }
+
+        .preview-subtitle {
+            margin: 0 0 28px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .gallery {
+            display: grid;
+            gap: 28px;
+        }
+
+        .shot {
+            overflow: hidden;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: #e5e7eb;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+        }
+
+        .shot-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            border-bottom: 1px solid #d1d5db;
+            background: #ffffff;
+            padding: 14px 18px;
+        }
+
+        .shot-label h2 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .shot-label span {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .screen {
+            min-height: 620px;
+            background: var(--bg);
+        }
+
+        .login-screen {
+            display: grid;
+            min-height: 620px;
+            place-items: center;
+            padding: 40px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 14px;
+            background: var(--panel);
+            padding: 28px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        h1, h2, h3, p {
+            margin-top: 0;
+        }
+
+        .headline {
+            margin-bottom: 8px;
+            font-size: 26px;
+            line-height: 1.2;
+        }
+
+        .helper {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .form {
+            display: grid;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .input,
+        .select {
+            width: 100%;
+            height: 42px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #374151;
+            padding: 0 12px;
+            font-size: 14px;
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn {
+            display: inline-flex;
+            min-height: 42px;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #ffffff;
+        }
+
+        .btn-dark {
+            background: var(--dark);
+            color: #ffffff;
+        }
+
+        .btn-light {
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: #ffffff;
+        }
+
+        .app-shell {
+            display: grid;
+            min-height: 700px;
+            grid-template-columns: 260px minmax(0, 1fr);
+        }
+
+        .sidebar {
+            border-right: 1px solid var(--line);
+            background: #ffffff;
+            padding: 24px 18px;
+        }
+
+        .signed {
+            color: #1d4ed8;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .brand {
+            margin: 6px 0 22px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .nav {
+            display: grid;
+            gap: 8px;
+        }
+
+        .nav a {
+            border-radius: 8px;
+            color: #374151;
+            padding: 11px 12px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .nav a.active {
+            background: var(--blue);
+            color: #ffffff;
+        }
+
+        .logout {
+            margin-top: 28px;
+            width: 100%;
+        }
+
+        .content {
+            padding: 28px;
+        }
+
+        .top-tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            border-top: 1px solid var(--line);
+            margin-bottom: 28px;
+            padding-top: 18px;
+        }
+
+        .tool-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .small-input {
+            width: 160px;
+            height: 34px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0 10px;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .section-head h2 {
+            margin-bottom: 4px;
+            font-size: 30px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card,
+        .panel {
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow: 0 5px 14px rgba(15, 23, 42, 0.08);
+        }
+
+        .stat-card {
+            padding: 22px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            margin-top: 12px;
+            font-size: 34px;
+            font-weight: 800;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .table th {
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 12px;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        .table th,
+        .table td {
+            padding: 13px 10px;
+        }
+
+        .table td {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .link {
+            color: var(--blue);
+            font-weight: 700;
+        }
+
+        .danger-link {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 360px minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        .video-box {
+            display: grid;
+            min-height: 315px;
+            place-items: center;
+            border-radius: 12px;
+            background:
+                linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(22, 163, 74, 0.12)),
+                #111827;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .camera-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .results {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result-item {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #ffffff;
+            padding: 14px;
+        }
+
+        .status {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .yellow {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-left: 1px solid var(--line);
+            border-top: 1px solid var(--line);
+        }
+
+        .day,
+        .day-name {
+            min-height: 86px;
+            border-right: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            background: #ffffff;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .day-name {
+            min-height: 38px;
+            background: #f9fafb;
+            color: #4b5563;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .day.today {
+            box-shadow: inset 0 0 0 2px #0082c9;
+            background: var(--blue-soft);
+        }
+
+        .day.muted-day {
+            background: #f9fafb;
+            color: #9ca3af;
+        }
+
+        .day-counts {
+            display: grid;
+            gap: 4px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .settings-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .switch {
+            position: relative;
+            width: 58px;
+            height: 30px;
+            border-radius: 999px;
+            background: var(--blue);
+        }
+
+        .switch::after {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            content: "";
+        }
+
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .archive-card {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .archive-card header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--blue-soft);
+            padding: 12px;
+        }
+
+        .archive-card .body {
+            padding: 12px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .danger-zone {
+            border: 1px solid #fecaca;
+        }
+
+        @media (max-width: 900px) {
+            .page {
+                padding: 18px;
+            }
+
+            .app-shell,
+            .two-col,
+            .cards,
+            .archive-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <h1 class="preview-title">Henokh Presence Final Product Preview</h1>
+        <p class="preview-subtitle">Static realistic page views based on the current project templates.</p>
+
+        <div class="gallery">
+            <section class="shot">
+                <div class="shot-label">
+                    <h2>Login Page</h2>
+                    <span>index.html</span>
+                </div>
+                <div class="screen login-screen">
+                    <div class="login-card">
+                        <div class="center">
+                            <h1 class="headline">Presence Login</h1>
+                            <p class="helper">Sign in to manage students, teachers, and users.</p>
+                        </div>
+                        <div class="form">
+                            <div class="field">
+                                <label>Username</label>
+                                <div class="input">admin</div>
+                            </div>
+                            <div class="field">
+                                <label>Password</label>
+                                <div class="input">••••••••</div>
+                            </div>
+                            <div class="button-row">
+                                <a class="btn btn-primary" href="#">Login</a>
+                                <a class="btn btn-light" href="#">Presence</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="shot">
+                <div class="shot-label">
+                    <h2>Dashboard Overview</h2>
+                    <span>dashboard.html</span>
+                </div>
+                <div class="screen app-shell">
+                    <aside class="sidebar">
+                        <div class="signed">Signed in as admin</div>
+                        <div class="brand">Dashboard</div>
+                        <nav class="nav">
+                            <a class="active" href="#">Overview</a>
+                            <a href="#">Students</a>
+                            <a href="#">Teachers</a>
+                            <a href="#">Classes</a>
+                            <a href="#">Presence</a>
+                            <a href="#">Settings</a>
+                            <a href="#">Open Camera</a>
+                        </nav>
+                        <a class="btn btn-dark logout" href="#">Logout</a>
+                    </aside>
+                    <section class="content">
+                        <div class="top-tools">
+                            <div class="tool-form">
+                                <span>Search</span>
+                                <div class="small-input"></div>
+                                <span>Show</span>
+                                <div class="small-input" style="width:70px;">25</div>
+                                <a class="btn btn-primary" style="min-height:34px;" href="#">Apply</a>
+                            </div>
+                            <div class="helper">Page 1 of 3</div>
+                        </div>
+                        <div class="section-head">
+                            <div>
+                                <h2>Overview</h2>
+                                <p class="helper">System snapshot for active data.</p>
+                            </div>
+                        </div>
+                        <div class="cards">
+                            <div class="stat-card"><div class="stat-label">Students</div><div class="stat-value">128</div></div>
+                            <div class="stat-card"><div class="stat-label">Teachers</div><div class="stat-value">18</div></div>
+                            <div class="stat-card"><div class="stat-label">Classes</div><div class="stat-value">24</div></div>
+                            <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value">4</div></div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="shot">
+                <div class="shot-label">
+                    <h2>Student Management</h2>
+                    <span>dashboard.html + student_form.html</span>
+                </div>
+                <div class="screen app-shell">
+                    <aside class="sidebar">
+                        <div class="signed">Signed in as admin</div>
+                        <div class="brand">Dashboard</div>
+                        <nav class="nav">
+                            <a href="#">Overview</a>
+                            <a class="active" href="#">Students</a>
+                            <a href="#">Teachers</a>
+                            <a href="#">Classes</a>
+                            <a href="#">Presence</a>
+                            <a href="#">Settings</a>
+                        </nav>
+                    </aside>
+                    <section class="content">
+                        <div class="section-head">
+                            <div>
+                                <h2>Student List</h2>
+                                <p class="helper">128 registered students</p>
+                            </div>
+                            <a class="btn btn-primary" href="#">Add Student</a>
+                        </div>
+                        <div class="panel">
+                            <table class="table">
+                                <thead>
+                                    <tr><th>Name</th><th>NIM</th><th>Face Data</th><th class="right">Action</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>Andi Pratama</strong></td><td>20240011</td><td><span class="status green">Saved</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                                    <tr><td><strong>Siti Rahma</strong></td><td>20240012</td><td><span class="status green">Saved</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                                    <tr><td><strong>Bima Saputra</strong></td><td>20240013</td><td><span class="status yellow">Missing</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                                    <tr><td><strong>Dewi Lestari</strong></td><td>20240014</td><td><span class="status green">Saved</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="shot">
+                <div class="shot-label">
+                    <h2>Class Setup</h2>
+                    <span>dashboard.html + class_form.html</span>
+                </div>
+                <div class="screen app-shell">
+                    <aside class="sidebar">
+                        <div class="signed">Signed in as admin</div>
+                        <div class="brand">Dashboard</div>
+                        <nav class="nav">
+                            <a href="#">Overview</a>
+                            <a href="#">Students</a>
+                            <a href="#">Teachers</a>
+                            <a class="active" href="#">Classes</a>
+                            <a href="#">Presence</a>
+                            <a href="#">Settings</a>
+                        </nav>
+                    </aside>
+                    <section class="content">
+                        <div class="section-head">
+                            <div>
+                                <h2>Class Setup</h2>
+                                <p class="helper">24 configured classes</p>
+                            </div>
+                            <a class="btn btn-primary" href="#">Add Class</a>
+                        </div>
+                        <div class="panel">
+                            <table class="table">
+                                <thead>
+                                    <tr><th>Class Name</th><th>Class Code</th><th>Class Time</th><th>Presence Time</th><th>Teacher</th><th class="right">Action</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>Computer Vision</strong></td><td>CV-401</td><td>08:00 - 09:40</td><td>07:45 - 08:15</td><td>Pak Andreas</td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                                    <tr><td><strong>Database Systems</strong></td><td>DB-302</td><td>10:00 - 11:40</td><td>09:45 - 10:15</td><td>Bu Rina</td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                                    <tr><td><strong>Machine Learning</strong></td><td>ML-501</td><td>13:00 - 14:40</td><td>12:45 - 13:15</td><td>Pak Budi</td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="shot">
+                <div class="shot-label">
+                    <h2>Presence Camera</h2>
+                    <span>presence.html</span>
+                </div>
+                <div class="screen login-screen">
+                    <div class="panel" style="width:min(100%,960px);">
+                        <div class="section-head">
+                            <div>
+                                <h2>Presence Camera</h2>
+                                <p class="helper">Live recognition for selected class.</p>
+                            </div>
+                            <a class="btn btn-light" href="#">Back</a>
+                        </div>
+                        <div class="field" style="max-width:420px;margin-bottom:18px;">
+                            <label>Class</label>
+                            <div class="select">Computer Vision - CV-401</div>
+                        </div>
+                        <div class="two-col" style="grid-template-columns:minmax(0,2fr) minmax(280px,1fr);">
+                            <div>
+                                <div class="video-box">Live video + face boxes</div>
+                                <div class="camera-actions">
+                                    <a class="btn btn-primary" href="#">Start</a>
+                                    <a class="btn btn-red" href="#">Stop</a>
+                                </div>
+                                <p class="helper center" style="margin-top:14px;">Camera running. Detecting faces...</p>
+                            </div>
+                            <section class="panel" style="box-shadow:none;border:1px solid var(--line);">
+                                <h3>Detected Students</h3>
+                                <p class="helper">Computer Vision - CV-401</p>
+                                <div class="results">
+                                    <div class="result-item"><strong>Andi Pratama</strong><br><span class="status green">Presence</span></div>
+                                    <div class="result-item"><strong>Siti Rahma</strong><br><span class="status yellow">Late</span></div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="shot">
+                <div class="shot-label">
+                    <h2>Presence Calendar and Attendance Detail</h2>
+                    <span>dashboard.html + attendance_detail.html</span>
+                </div>
+                <div class="screen app-shell">
+                    <aside class="sidebar">
+                        <div class="signed">Signed in as admin</div>
+                        <div class="brand">Dashboard</div>
+                        <nav class="nav">
+                            <a href="#">Overview</a>
+                            <a href="#">Students</a>
+                            <a href="#">Teachers</a>
+                            <a href="#">Classes</a>
+                            <a class="active" href="#">Presence</a>
+                            <a href="#">Settings</a>
+                        </nav>
+                    </aside>
+                    <section class="content">
+                        <div class="section-head">
+                            <div>
+                                <h2>Presence List</h2>
+                                <p class="helper">Review attendance by class and date.</p>
+                            </div>
+                        </div>
+                        <div class="panel" style="margin-bottom:18px;">
+                            <div class="tool-form">
+                                <div class="select" style="width:260px;">Computer Vision - CV-401</div>
+                                <div class="input" style="width:150px;">2026-06</div>
+                                <a class="btn btn-primary" href="#">View</a>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="section-head">
+                                <div>
+                                    <h3>Computer Vision</h3>
+                                    <p class="helper">June 2026</p>
+                                </div>
+                                <div><a class="btn btn-light" href="#">Previous</a> <a class="btn btn-light" href="#">Next</a></div>
+                            </div>
+                            <div class="calendar">
+                                <div class="day-name">Mon</div><div class="day-name">Tue</div><div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div><div class="day-name">Sat</div><div class="day-name">Sun</div>
+                                <div class="day muted-day">1</div><div class="day">2<div class="day-counts"><span style="color:var(--green)">P 29</span><span style="color:var(--yellow)">L 3</span><span style="color:var(--red)">A 2</span></div></div><div class="day">3<div class="day-counts"><span style="color:var(--green)">P 31</span><span style="color:var(--yellow)">L 1</span><span style="color:var(--red)">A 2</span></div></div><div class="day today">4<div class="day-counts"><span style="color:var(--green)">P 28</span><span style="color:var(--yellow)">L 4</span><span style="color:var(--red)">A 2</span></div></div><div class="day">5</div><div class="day">6</div><div class="day">7</div>
+                                <div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="shot">
+                <div class="shot-label">
+                    <h2>Settings Page</h2>
+                    <span>dashboard.html settings section</span>
+                </div>
+                <div class="screen app-shell">
+                    <aside class="sidebar">
+                        <div class="signed">Signed in as admin</div>
+                        <div class="brand">Dashboard</div>
+                        <nav class="nav">
+                            <a href="#">Overview</a>
+                            <a href="#">Students</a>
+                            <a href="#">Teachers</a>
+                            <a href="#">Classes</a>
+                            <a href="#">Presence</a>
+                            <a class="active" href="#">Settings</a>
+                        </nav>
+                    </aside>
+                    <section class="content settings-grid">
+                        <div>
+                            <h2>Settings</h2>
+                            <p class="helper">Application behavior for face presence and student enrollment.</p>
+                        </div>
+                        <section class="panel">
+                            <div class="section-head" style="margin-bottom:0;">
+                                <div>
+                                    <h3>Anti-spoof detection</h3>
+                                    <p class="helper">When enabled, the system checks the real-person score.</p>
+                                </div>
+                                <div class="switch"></div>
+                            </div>
+                            <a class="btn btn-primary" href="#" style="margin-top:16px;">Save Settings</a>
+                        </section>
+                        <section class="panel">
+                            <div class="section-head">
+                                <div>
+                                    <h3>User Accounts</h3>
+                                    <p class="helper">4 registered users</p>
+                                </div>
+                                <a class="btn btn-primary" href="#">Add User</a>
+                            </div>
+                            <table class="table">
+                                <thead><tr><th>Username</th><th>Created</th><th class="right">Action</th></tr></thead>
+                                <tbody><tr><td><strong>admin</strong></td><td>2026-06-01</td><td class="right">Current user</td></tr><tr><td><strong>operator</strong></td><td>2026-06-03</td><td class="right"><span class="danger-link">Delete</span></td></tr></tbody>
+                            </table>
+                        </section>
+                        <section class="panel">
+                            <h3>Archived Data</h3>
+                            <p class="helper">Restore archived students, teachers, or classes.</p>
+                            <div class="archive-grid">
+                                <div class="archive-card"><header><strong>Students</strong><a class="btn btn-primary" href="#">Restore All</a></header><div class="body">3 archived records</div></div>
+                                <div class="archive-card"><header><strong>Teachers</strong><a class="btn btn-primary" href="#">Restore All</a></header><div class="body">1 archived record</div></div>
+                                <div class="archive-card"><header><strong>Classes</strong><a class="btn btn-primary" href="#">Restore All</a></header><div class="body">2 archived records</div></div>
+                            </div>
+                        </section>
+                        <section class="panel danger-zone">
+                            <div class="section-head" style="margin-bottom:0;">
+                                <div>
+                                    <h3 style="color:var(--red)">Danger Zone</h3>
+                                    <p class="helper">Permanently delete archived data.</p>
+                                </div>
+                                <a class="btn btn-red" href="#">Cleanup Archived</a>
+                            </div>
+                        </section>
+                    </section>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

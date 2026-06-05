@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="720" viewBox="0 0 1000 720" role="img" aria-label="Teacher form layout visualization">
+  <style>
+    .bg{fill:#f8fafc}.side{fill:#fff;stroke:#cbd5e1;stroke-width:2}.card{fill:#fff;stroke:#263247;stroke-width:2}.input{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.5}.btn{fill:#2563eb}.txt{font:15px Arial,sans-serif;fill:#334155}.title{font:700 22px Arial,sans-serif;fill:#111827}.white{font:700 14px Arial,sans-serif;fill:#fff}
+  </style>
+  <rect class="bg" width="1000" height="720"/>
+  <rect class="side" width="260" height="720"/><text class="title" x="32" y="64">Sidebar</text>
+  <rect class="card" x="390" y="90" width="390" height="430" rx="10"/>
+  <text class="title" x="425" y="140">Teacher Form</text>
+  <text class="txt" x="425" y="200">Name</text><rect class="input" x="425" y="215" width="320" height="42" rx="7"/>
+  <text class="txt" x="425" y="290">NIP</text><rect class="input" x="425" y="305" width="320" height="42" rx="7"/>
+  <rect class="btn" x="425" y="400" width="320" height="44" rx="7"/><text class="white" x="585" y="427" text-anchor="middle">Save Teacher</text>
+  <rect class="input" x="425" y="465" width="320" height="44" rx="7"/><text class="txt" x="585" y="492" text-anchor="middle">Back to Dashboard</text>
+</svg>
+

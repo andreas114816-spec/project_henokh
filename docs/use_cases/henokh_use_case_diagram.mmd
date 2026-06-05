@@ -1,0 +1,62 @@
+flowchart LR
+    Admin[Admin / Operator]
+    Operator[Presence Operator]
+    Camera[Camera]
+
+    subgraph System[Henokh Presence System]
+        subgraph Auth[Authentication]
+            Login((Login))
+            Logout((Logout))
+        end
+
+        subgraph AdminGroup[Administration]
+            Dashboard((View Dashboard))
+            Users((Manage Users))
+            AntiSpoof((Configure Anti-spoof))
+            Cleanup((Cleanup Archived Data))
+        end
+
+        subgraph Master[Master Data]
+            Students((Manage Students))
+            Capture((Capture Student Face))
+            Teachers((Manage Teachers))
+            Classes((Manage Classes))
+        end
+
+        subgraph Presence[Presence]
+            RunCamera((Run Presence Camera))
+            Detect((Detect Face))
+            Recognize((Recognize Student))
+            Record((Record Attendance))
+        end
+
+        subgraph Attendance[Attendance and Archive]
+            Calendar((Review Calendar))
+            Detail((Manage Detail))
+            Restore((Restore Archived Data))
+        end
+    end
+
+    Admin --- Login
+    Admin --- Logout
+    Admin --- Dashboard
+    Admin --- Users
+    Admin --- AntiSpoof
+    Admin --- Cleanup
+    Admin --- Students
+    Admin --- Teachers
+    Admin --- Classes
+    Admin --- Calendar
+    Admin --- Detail
+    Admin --- Restore
+
+    Operator --- RunCamera
+    Operator --- Record
+    Camera --- Detect
+    Camera --- Recognize
+
+    Students -. "<<include>>" .-> Capture
+    RunCamera -. "<<include>>" .-> Detect
+    Detect -. "<<include>>" .-> Recognize
+    Recognize -. "<<include>>" .-> Record
+    Calendar -. "<<extend>>" .-> Detail

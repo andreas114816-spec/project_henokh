@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management View</title>
+    <link rel="stylesheet" href="assets/preview.css">
+</head>
+<body>
+    <main class="screen app-shell">
+        <aside class="sidebar">
+            <div class="signed">Signed in as admin</div><div class="brand">Dashboard</div>
+            <nav class="nav"><a href="#">Overview</a><a class="active" href="#">Students</a><a href="#">Teachers</a><a href="#">Classes</a><a href="#">Presence</a><a href="#">Settings</a></nav>
+        </aside>
+        <section class="content">
+            <div class="section-head"><div><h2>Student List</h2><p class="helper">128 registered students</p></div><a class="btn btn-primary" href="#">Add Student</a></div>
+            <div class="panel">
+                <table class="table">
+                    <thead><tr><th>Name</th><th>NIM</th><th>Face Data</th><th class="right">Action</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Andi Pratama</strong></td><td>20240011</td><td><span class="status green">Saved</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                        <tr><td><strong>Siti Rahma</strong></td><td>20240012</td><td><span class="status green">Saved</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                        <tr><td><strong>Bima Saputra</strong></td><td>20240013</td><td><span class="status yellow">Missing</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                        <tr><td><strong>Dewi Lestari</strong></td><td>20240014</td><td><span class="status green">Saved</span></td><td class="right"><span class="link">Edit</span> &nbsp; <span class="danger-link">Archive</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

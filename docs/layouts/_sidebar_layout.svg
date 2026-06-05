@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900" role="img" aria-label="Sidebar layout visualization">
+  <style>
+    .bg{fill:#f8fafc}.panel{fill:#fff;stroke:#263247;stroke-width:2}.head{fill:#263247}.txt{font:16px Arial,sans-serif;fill:#263247}.h{font:700 20px Arial,sans-serif;fill:#fff}.muted{font:13px Arial,sans-serif;fill:#64748b}.nav{fill:#eff6ff;stroke:#bfdbfe;stroke-width:1.5}.active{fill:#2563eb}.activeText{font:700 15px Arial,sans-serif;fill:#fff}.btn{fill:#111827}.btnText{font:700 15px Arial,sans-serif;fill:#fff}
+  </style>
+  <rect class="bg" width="640" height="900"/>
+  <rect class="panel" x="120" y="60" width="280" height="780" rx="8"/>
+  <rect class="head" x="120" y="60" width="280" height="105" rx="8"/>
+  <text class="h" x="145" y="110">Dashboard Sidebar</text>
+  <text class="muted" x="145" y="142" fill="#e5e7eb">Signed-in user area</text>
+  <rect class="active" x="145" y="205" width="230" height="42" rx="7"/>
+  <text class="activeText" x="165" y="232">Overview</text>
+  <rect class="nav" x="145" y="265" width="230" height="42" rx="7"/><text class="txt" x="165" y="292">Students</text>
+  <rect class="nav" x="145" y="325" width="230" height="42" rx="7"/><text class="txt" x="165" y="352">Teachers</text>
+  <rect class="nav" x="145" y="385" width="230" height="42" rx="7"/><text class="txt" x="165" y="412">Classes</text>
+  <rect class="nav" x="145" y="445" width="230" height="42" rx="7"/><text class="txt" x="165" y="472">Presence</text>
+  <rect class="nav" x="145" y="505" width="230" height="42" rx="7"/><text class="txt" x="165" y="532">Settings</text>
+  <rect class="nav" x="145" y="565" width="230" height="42" rx="7"/><text class="txt" x="165" y="592">Open Camera</text>
+  <rect class="btn" x="145" y="690" width="230" height="48" rx="7"/>
+  <text class="btnText" x="245" y="720" text-anchor="middle">Logout</text>
+</svg>
+

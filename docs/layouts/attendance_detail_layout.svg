@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-label="Attendance detail layout visualization">
+  <style>
+    .bg{fill:#f8fafc}.side{fill:#fff;stroke:#cbd5e1;stroke-width:2}.card{fill:#fff;stroke:#263247;stroke-width:2}.soft{fill:#eff6ff;stroke:#bfdbfe;stroke-width:1.5}.head{fill:#263247}.txt{font:15px Arial,sans-serif;fill:#334155}.title{font:700 22px Arial,sans-serif;fill:#111827}.white{font:700 15px Arial,sans-serif;fill:#fff}
+  </style>
+  <rect class="bg" width="1200" height="760"/>
+  <rect class="side" width="260" height="760"/><text class="title" x="32" y="64">Sidebar</text>
+  <text class="title" x="310" y="72">Attendance Detail</text>
+  <rect class="soft" x="310" y="105" width="900" height="72" rx="8"/>
+  <text class="txt" x="330" y="135">Search, per-page selector, pagination controls</text>
+  <rect class="card" x="310" y="220" width="900" height="455" rx="8"/>
+  <rect class="head" x="310" y="220" width="900" height="46" rx="8"/><text class="white" x="330" y="250">Attendance table</text>
+  <text class="txt" x="330" y="310">Student</text><text class="txt" x="500" y="310">NIM</text><text class="txt" x="650" y="310">Status select</text><text class="txt" x="820" y="310">Presence datetime</text><text class="txt" x="1060" y="310">Actions</text>
+  <line x1="330" y1="340" x2="1185" y2="340" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="330" y1="405" x2="1185" y2="405" stroke="#e2e8f0" stroke-width="2"/>
+  <line x1="330" y1="470" x2="1185" y2="470" stroke="#e2e8f0" stroke-width="2"/>
+  <line x1="330" y1="535" x2="1185" y2="535" stroke="#e2e8f0" stroke-width="2"/>
+  <line x1="330" y1="600" x2="1185" y2="600" stroke="#e2e8f0" stroke-width="2"/>
+</svg>
