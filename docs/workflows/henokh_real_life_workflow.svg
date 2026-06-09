@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1700"
+   height="1600"
+   viewBox="0 0 1700 1600"
+   version="1.1"
+   id="svg104"
+   sodipodi:docname="henokh_real_life_workflow.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   inkscape:export-filename="henokh_real_life_workflow.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview104"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.65552958"
+     inkscape:cx="1285.9832"
+     inkscape:cy="723.84224"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="1911"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg104" />
+  <defs
+     id="defs1">
+    <marker
+       id="arrow"
+       markerWidth="12"
+       markerHeight="12"
+       refX="10"
+       refY="6"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="M2,2 L10,6 L2,10 Z"
+         fill="#334155"
+         id="path1" />
+    </marker>
+    <style
+       id="style1">
+      .bg { fill: #f8fafc; }
+      .section { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 16; }
+      .section-title { fill: #0f172a; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .box { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; rx: 10; }
+      .box2 { fill: #ecfdf5; stroke: #16a34a; stroke-width: 2; rx: 10; }
+      .box3 { fill: #fff7ed; stroke: #ea580c; stroke-width: 2; rx: 10; }
+      .box4 { fill: #f5f3ff; stroke: #7c3aed; stroke-width: 2; rx: 10; }
+      .decision { fill: #fefce8; stroke: #ca8a04; stroke-width: 2; }
+      .note { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 10; }
+      .text { fill: #0f172a; font-family: Arial, sans-serif; font-size: 15px; }
+      .small { fill: #475569; font-family: Arial, sans-serif; font-size: 13px; }
+      .label { fill: #334155; font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; }
+      .line { fill: none; stroke: #334155; stroke-width: 2; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 7; marker-end: url(#arrow); }
+    </style>
+    <marker
+       id="arrow-7"
+       markerWidth="12"
+       markerHeight="12"
+       refX="10"
+       refY="6"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="m 2,2 8,4 -8,4 z"
+         fill="#334155"
+         id="path1-6" />
+    </marker>
+    <marker
+       id="arrow-7-6"
+       markerWidth="12"
+       markerHeight="12"
+       refX="10"
+       refY="6"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="m 2,2 8,4 -8,4 z"
+         fill="#334155"
+         id="path1-6-3" />
+    </marker>
+  </defs>
+  <rect
+     class="bg"
+     width="1700"
+     height="1600"
+     id="rect1" />
+  <rect
+     class="section"
+     x="40"
+     y="40"
+     width="380"
+     height="840"
+     id="rect2" />
+  <text
+     class="section-title"
+     x="70"
+     y="78"
+     id="text2">1. Setup awal</text>
+  <rect
+     class="box"
+     x="80"
+     y="110"
+     width="300"
+     height="58"
+     id="rect3" />
+  <text
+     class="text"
+     x="230"
+     y="135"
+     text-anchor="middle"
+     id="text3">Admin login ke dashboard</text>
+  <text
+     class="small"
+     x="230"
+     y="154"
+     text-anchor="middle"
+     id="text4">Akses setelah autentikasi</text>
+  <rect
+     class="box"
+     x="80"
+     y="230"
+     width="300"
+     height="58"
+     id="rect4" />
+  <text
+     class="text"
+     x="230"
+     y="255"
+     text-anchor="middle"
+     id="text5">Admin membuat user</text>
+  <text
+     class="small"
+     x="230"
+     y="274"
+     text-anchor="middle"
+     id="text6">Operator/admin lain bila perlu</text>
+  <rect
+     class="box"
+     x="80"
+     y="350"
+     width="300"
+     height="58"
+     id="rect6" />
+  <text
+     class="text"
+     x="230"
+     y="375"
+     text-anchor="middle"
+     id="text7">Admin mendaftarkan dosen/guru</text>
+  <text
+     class="small"
+     x="230"
+     y="394"
+     text-anchor="middle"
+     id="text8">Data pengajar kelas</text>
+  <rect
+     class="box"
+     x="80"
+     y="470"
+     width="300"
+     height="58"
+     id="rect8" />
+  <text
+     class="text"
+     x="230"
+     y="495"
+     text-anchor="middle"
+     id="text9">Admin membuat kelas</text>
+  <text
+     class="small"
+     x="230"
+     y="514"
+     text-anchor="middle"
+     id="text10">Nama dan kode kelas</text>
+  <rect
+     class="box"
+     x="80"
+     y="590"
+     width="300"
+     height="58"
+     id="rect10" />
+  <text
+     class="text"
+     x="230"
+     y="615"
+     text-anchor="middle"
+     id="text11">Admin mengatur jadwal</text>
+  <text
+     class="small"
+     x="230"
+     y="634"
+     text-anchor="middle"
+     id="text12">Jam kelas dan waktu presensi</text>
+  <rect
+     class="box"
+     x="80"
+     y="710"
+     width="300"
+     height="58"
+     id="rect12" />
+  <text
+     class="text"
+     x="230"
+     y="735"
+     text-anchor="middle"
+     id="text13">Admin memilih mahasiswa kelas</text>
+  <text
+     class="small"
+     x="230"
+     y="754"
+     text-anchor="middle"
+     id="text14">Relasi mahasiswa ke kelas</text>
+  <rect
+     class="section"
+     x="460"
+     y="40"
+     width="380"
+     height="1160"
+     id="rect14" />
+  <text
+     class="section-title"
+     x="490"
+     y="78"
+     id="text15">2. Pendaftaran mahasiswa</text>
+  <rect
+     class="box2"
+     x="500"
+     y="110"
+     width="300"
+     height="58"
+     id="rect15" />
+  <text
+     class="text"
+     x="650"
+     y="135"
+     text-anchor="middle"
+     id="text16">Admin membuka menu Student</text>
+  <text
+     class="small"
+     x="650"
+     y="154"
+     text-anchor="middle"
+     id="text17">Bukan self-registration</text>
+  <rect
+     class="box2"
+     x="500"
+     y="230"
+     width="300"
+     height="58"
+     id="rect17" />
+  <text
+     class="text"
+     x="650"
+     y="255"
+     text-anchor="middle"
+     id="text18">Admin klik Add Student</text>
+  <text
+     class="small"
+     x="650"
+     y="274"
+     text-anchor="middle"
+     id="text19">Form di dashboard</text>
+  <rect
+     class="box2"
+     x="500"
+     y="350"
+     width="300"
+     height="58"
+     id="rect19" />
+  <text
+     class="text"
+     x="650"
+     y="375"
+     text-anchor="middle"
+     id="text20">Isi nama dan NIM</text>
+  <text
+     class="small"
+     x="650"
+     y="394"
+     text-anchor="middle"
+     id="text21">NIM angka dan unik</text>
+  <rect
+     class="box2"
+     x="500"
+     y="470"
+     width="300"
+     height="58"
+     id="rect21" />
+  <text
+     class="text"
+     x="650"
+     y="495"
+     text-anchor="middle"
+     id="text22">Nyalakan kamera</text>
+  <text
+     class="small"
+     x="650"
+     y="514"
+     text-anchor="middle"
+     id="text23">Ambil wajah mahasiswa</text>
+  <rect
+     class="box2"
+     x="500"
+     y="590"
+     width="300"
+     height="58"
+     id="rect23" />
+  <text
+     class="text"
+     x="650"
+     y="615"
+     text-anchor="middle"
+     id="text24">Sistem mendeteksi wajah</text>
+  <text
+     class="small"
+     x="650"
+     y="634"
+     text-anchor="middle"
+     id="text25">YOLO face detection</text>
+  <polygon
+     class="decision"
+     points="650,700 785,765 650,830 515,765"
+     id="polygon25" />
+  <text
+     class="text"
+     x="650"
+     y="757"
+     text-anchor="middle"
+     id="text26">Tepat satu wajah</text>
+  <text
+     class="text"
+     x="650"
+     y="776"
+     text-anchor="middle"
+     id="text27">terdeteksi?</text>
+  <polygon
+     class="decision"
+     points="650,900 785,965 650,1030 515,965"
+     id="polygon27" />
+  <text
+     class="text"
+     x="650"
+     y="957"
+     text-anchor="middle"
+     id="text28">Wajah real?</text>
+  <text
+     class="small"
+     x="650"
+     y="976"
+     text-anchor="middle"
+     id="text29">Jika anti-spoof aktif</text>
+  <rect
+     class="box2"
+     x="500"
+     y="1110"
+     width="300"
+     height="58"
+     id="rect29" />
+  <text
+     class="text"
+     x="650"
+     y="1135"
+     text-anchor="middle"
+     id="text30">MobileFaceNet membuat embedding</text>
+  <text
+     class="small"
+     x="650"
+     y="1154"
+     text-anchor="middle"
+     id="text31">Feature vector wajah</text>
+  <rect
+     class="section"
+     x="880"
+     y="40"
+     width="380"
+     height="1160"
+     id="rect31" />
+  <text
+     class="section-title"
+     x="910"
+     y="78"
+     id="text32">3. Presensi harian</text>
+  <rect
+     class="box3"
+     x="920"
+     y="110"
+     width="300"
+     height="58"
+     id="rect32" />
+  <text
+     class="text"
+     x="1070"
+     y="135"
+     text-anchor="middle"
+     id="text33">Simpan mahasiswa + embedding</text>
+  <text
+     class="small"
+     x="1070"
+     y="154"
+     text-anchor="middle"
+     id="text34">Embedding masuk database</text>
+  <rect
+     class="box3"
+     x="920"
+     y="230"
+     width="300"
+     height="58"
+     id="rect34" />
+  <text
+     class="text"
+     x="1070"
+     y="255"
+     text-anchor="middle"
+     id="text35">Operator membuka Presence Camera</text>
+  <text
+     class="small"
+     x="1070"
+     y="274"
+     text-anchor="middle"
+     id="text36">Saat kelas berlangsung</text>
+  <rect
+     class="box3"
+     x="920"
+     y="350"
+     width="300"
+     height="58"
+     id="rect36" />
+  <text
+     class="text"
+     x="1070"
+     y="375"
+     text-anchor="middle"
+     id="text37">Operator memilih kelas target</text>
+  <text
+     class="small"
+     x="1070"
+     y="394"
+     text-anchor="middle"
+     id="text38">Matching dibatasi ke kelas</text>
+  <rect
+     class="box3"
+     x="920"
+     y="470"
+     width="300"
+     height="58"
+     id="rect38" />
+  <text
+     class="text"
+     x="1070"
+     y="495"
+     text-anchor="middle"
+     id="text39">Kamera mengirim frame berkala</text>
+  <text
+     class="small"
+     x="1070"
+     y="514"
+     text-anchor="middle"
+     id="text40">Frame dikirim ke backend</text>
+  <rect
+     class="box3"
+     x="920"
+     y="590"
+     width="300"
+     height="58"
+     id="rect40" />
+  <text
+     class="text"
+     x="1070"
+     y="615"
+     text-anchor="middle"
+     id="text41">Sistem mendeteksi wajah live</text>
+  <text
+     class="small"
+     x="1070"
+     y="634"
+     text-anchor="middle"
+     id="text42">Anti-spoof jika aktif</text>
+  <rect
+     class="box3"
+     x="920"
+     y="710"
+     width="300"
+     height="58"
+     id="rect42" />
+  <text
+     class="text"
+     x="1070"
+     y="735"
+     text-anchor="middle"
+     id="text43">Buat embedding wajah live</text>
+  <text
+     class="small"
+     x="1070"
+     y="754"
+     text-anchor="middle"
+     id="text44">Inference, bukan training</text>
+  <rect
+     class="box3"
+     x="920"
+     y="830"
+     width="300"
+     height="58"
+     id="rect44" />
+  <text
+     class="text"
+     x="1070"
+     y="855"
+     text-anchor="middle"
+     id="text45">Bandingkan dengan embedding DB</text>
+  <text
+     class="small"
+     x="1070"
+     y="874"
+     text-anchor="middle"
+     id="text46">Dot product / cosine similarity</text>
+  <polygon
+     class="decision"
+     points="1070,940 1205,1005 1070,1070 935,1005"
+     id="polygon46" />
+  <text
+     class="text"
+     x="1070"
+     y="997"
+     text-anchor="middle"
+     id="text47">Similarity &gt;=</text>
+  <text
+     class="text"
+     x="1070"
+     y="1016"
+     text-anchor="middle"
+     id="text48">threshold?</text>
+  <rect
+     class="section"
+     x="1300"
+     y="40"
+     width="360"
+     height="1160"
+     id="rect48" />
+  <text
+     class="section-title"
+     x="1330"
+     y="78"
+     id="text49">4. Attendance dan review</text>
+  <polygon
+     class="decision"
+     points="1480,110 1615,175 1480,240 1345,175"
+     id="polygon49" />
+  <text
+     class="text"
+     x="1480"
+     y="167"
+     text-anchor="middle"
+     id="text50">Masih dalam</text>
+  <text
+     class="text"
+     x="1480"
+     y="186"
+     text-anchor="middle"
+     id="text51">waktu presensi?</text>
+  <rect
+     class="box4"
+     x="1330"
+     y="350"
+     width="300"
+     height="58"
+     id="rect51" />
+  <text
+     class="text"
+     x="1480"
+     y="375"
+     text-anchor="middle"
+     id="text52">Simpan/update attendance</text>
+  <text
+     class="small"
+     x="1480"
+     y="394"
+     text-anchor="middle"
+     id="text53">Status: presence atau late</text>
+  <rect
+     class="box4"
+     x="1330"
+     y="470"
+     width="300"
+     height="58"
+     id="rect53" />
+  <text
+     class="text"
+     x="1480"
+     y="495"
+     text-anchor="middle"
+     id="text54">Wajah tidak cocok/tidak dicatat</text>
+  <text
+     class="small"
+     x="1480"
+     y="514"
+     text-anchor="middle"
+     id="text55">Ditampilkan sebagai unknown</text>
+  <rect
+     class="box4"
+     x="1330"
+     y="590"
+     width="300"
+     height="58"
+     id="rect55" />
+  <text
+     class="text"
+     x="1480"
+     y="615"
+     text-anchor="middle"
+     id="text56">Setelah kelas selesai</text>
+  <text
+     class="small"
+     x="1480"
+     y="634"
+     text-anchor="middle"
+     id="text57">Yang belum hadir ditandai absen</text>
+  <rect
+     class="box4"
+     x="1330"
+     y="710"
+     width="300"
+     height="58"
+     id="rect57" />
+  <text
+     class="text"
+     x="1480"
+     y="735"
+     text-anchor="middle"
+     id="text58">Admin melihat kalender presensi</text>
+  <text
+     class="small"
+     x="1480"
+     y="754"
+     text-anchor="middle"
+     id="text59">Ringkasan per kelas/tanggal</text>
+  <rect
+     class="box4"
+     x="1330"
+     y="830"
+     width="300"
+     height="58"
+     id="rect59" />
+  <text
+     class="text"
+     x="1480"
+     y="855"
+     text-anchor="middle"
+     id="text60">Admin membuka detail attendance</text>
+  <text
+     class="small"
+     x="1480"
+     y="874"
+     text-anchor="middle"
+     id="text61">Koreksi manual jika perlu</text>
+  <rect
+     class="box4"
+     x="1330"
+     y="950"
+     width="300"
+     height="58"
+     id="rect61" />
+  <text
+     class="text"
+     x="1480"
+     y="975"
+     text-anchor="middle"
+     id="text62">Arsip atau restore data lama</text>
+  <text
+     class="small"
+     x="1480"
+     y="994"
+     text-anchor="middle"
+     id="text63">Riwayat tetap tersedia</text>
+  <path
+     class="line"
+     d="M230 168 V230"
+     id="path63" />
+  <path
+     class="line"
+     d="M230 288 V350"
+     id="path64" />
+  <path
+     class="line"
+     d="M230 408 V470"
+     id="path65" />
+  <path
+     class="line"
+     d="M230 528 V590"
+     id="path66" />
+  <path
+     class="line"
+     d="M230 648 V710"
+     id="path67" />
+  <path
+     class="line"
+     d="M380 739 H440 V139 H500"
+     id="path68" />
+  <path
+     class="line"
+     d="M650 168 V230"
+     id="path69" />
+  <path
+     class="line"
+     d="M650 288 V350"
+     id="path70" />
+  <path
+     class="line"
+     d="M650 408 V470"
+     id="path71" />
+  <path
+     class="line"
+     d="M650 528 V590"
+     id="path72" />
+  <path
+     class="line"
+     d="M650 648 V700"
+     id="path73" />
+  <path
+     class="line"
+     d="M650 830 V900"
+     id="path74" />
+  <text
+     class="label"
+     x="667"
+     y="872"
+     id="text74">Ya</text>
+  <path
+     class="line"
+     d="M515 765 H470 V499 H500"
+     id="path75" />
+  <text
+     class="label"
+     x="472"
+     y="744"
+     id="text75">Tidak</text>
+  <path
+     class="line"
+     d="M515 965 H470 V499 H500"
+     id="path76" />
+  <text
+     class="label"
+     x="472"
+     y="944"
+     id="text76">Tidak</text>
+  <path
+     class="line"
+     d="M650 1030 V1110"
+     id="path77" />
+  <text
+     class="label"
+     x="667"
+     y="1072"
+     id="text77">Ya / anti-spoof off</text>
+  <path
+     class="line"
+     d="M800 1139 H860 V139 H920"
+     id="path78" />
+  <path
+     class="line"
+     d="M1070 168 V230"
+     id="path79" />
+  <path
+     class="line"
+     d="M1070 288 V350"
+     id="path80" />
+  <path
+     class="line"
+     d="M1070 408 V470"
+     id="path81" />
+  <path
+     class="line"
+     d="M1070 528 V590"
+     id="path82" />
+  <path
+     class="line"
+     d="M1070 648 V710"
+     id="path83" />
+  <path
+     class="line"
+     d="M1070 768 V830"
+     id="path84" />
+  <path
+     class="line"
+     d="M1070 888 V940"
+     id="path85" />
+  <path
+     class="line"
+     d="M1205 1005 H1280 V175 H1345"
+     id="path86" />
+  <text
+     class="label"
+     x="1240"
+     y="982"
+     id="text86">Ya</text>
+  <path
+     class="line"
+     d="m 1069.9781,1071.6068 v 53.4005 h 210.0355 V 517.21246 h 50.0085"
+     id="path87" />
+  <text
+     class="label"
+     x="1088"
+     y="1100"
+     id="text87">Tidak</text>
+  <path
+     class="line"
+     d="M1480 240 V350"
+     id="path88" />
+  <text
+     class="label"
+     x="1498"
+     y="292"
+     id="text88">Ya</text>
+  <path
+     class="line"
+     d="m 1338.7739,174.69729 h -41.7223 v 317.1787 h 32.0941"
+     id="path89" />
+  <text
+     class="label"
+     x="1313.4355"
+     y="203.57666"
+     id="text89">Tidak</text>
+  <path
+     class="line"
+     d="M1480 648 V710"
+     id="path91" />
+  <path
+     class="line"
+     d="m 1480.054,529.40771 v 62"
+     id="path91-3"
+     style="fill:none;stroke:#334155;stroke-width:2;marker-end:url(#arrow-7)" />
+  <path
+     class="line"
+     d="m 1480.0366,408 v 62"
+     id="path91-3-1"
+     style="fill:none;stroke:#334155;stroke-width:2;marker-end:url(#arrow-7-6)" />
+  <path
+     class="line"
+     d="M1480 768 V830"
+     id="path92" />
+  <path
+     class="line"
+     d="M1480 888 V950"
+     id="path93" />
+</svg>

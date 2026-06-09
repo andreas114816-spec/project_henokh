@@ -1,0 +1,981 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1600"
+   height="2760"
+   viewBox="0 0 1600 2760"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg115"
+   sodipodi:docname="face_detection_ai_service_workflow.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   inkscape:export-filename="face_detection_ai_service_workflow.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="namedview115"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.5925274"
+     inkscape:cx="511.76512"
+     inkscape:cy="-75.665886"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="1911"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg115" />
+  <title
+     id="title">Workflow Pendeteksian Wajah dengan Face AI Service Terpisah</title>
+  <desc
+     id="desc">Activity workflow pendeteksian wajah dari frontend, backend Flask, Face AI Service, sampai database.</desc>
+  <defs
+     id="defs1">
+    <marker
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto">
+      <path
+         d="M0,0 L10,5 L0,10 Z"
+         fill="#334155"
+         id="path1" />
+    </marker>
+    <style
+       id="style1">
+      .page { fill: #f8fafc; }
+      .lane { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
+      .lane-alt { fill: #f1f5f9; stroke: #cbd5e1; stroke-width: 1.5; }
+      .title { fill: #0f172a; font: 700 32px Arial, sans-serif; }
+      .subtitle { fill: #475569; font: 17px Arial, sans-serif; }
+      .lane-title { fill: #0f172a; font: 700 21px Arial, sans-serif; }
+      .box { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+      .ai { fill: #ecfeff; stroke: #0891b2; stroke-width: 2; rx: 8; }
+      .db { fill: #f0fdf4; stroke: #16a34a; stroke-width: 2; rx: 8; }
+      .decision { fill: #fff7ed; stroke: #ea580c; stroke-width: 2; }
+      .error { fill: #fef2f2; stroke: #dc2626; stroke-width: 2; rx: 8; }
+      .start { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+      .end { fill: #0f172a; stroke: #0f172a; stroke-width: 2; }
+      .text { fill: #0f172a; font: 15px Arial, sans-serif; }
+      .small { fill: #475569; font: 13px Arial, sans-serif; }
+      .label { fill: #334155; font: 13px Arial, sans-serif; }
+      .flow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect
+     class="page"
+     width="1600"
+     height="2760"
+     id="rect1" />
+  <rect
+     class="lane"
+     x="40"
+     y="120"
+     width="340"
+     height="2550"
+     id="rect2" />
+  <rect
+     class="lane-alt"
+     x="410"
+     y="120"
+     width="340"
+     height="2550"
+     id="rect3" />
+  <rect
+     class="lane"
+     x="780"
+     y="120"
+     width="340"
+     height="2550"
+     id="rect4" />
+  <rect
+     class="lane-alt"
+     x="1150"
+     y="120"
+     width="410"
+     height="2550"
+     id="rect5" />
+  <text
+     class="lane-title"
+     x="210"
+     y="158"
+     text-anchor="middle"
+     id="text5">Frontend / Browser</text>
+  <text
+     class="lane-title"
+     x="580"
+     y="158"
+     text-anchor="middle"
+     id="text6">Backend Flask</text>
+  <text
+     class="lane-title"
+     x="950"
+     y="158"
+     text-anchor="middle"
+     id="text7">Face AI Service</text>
+  <text
+     class="lane-title"
+     x="1355"
+     y="158"
+     text-anchor="middle"
+     id="text8">Database</text>
+  <circle
+     class="start"
+     cx="210"
+     cy="210"
+     r="18"
+     id="circle8" />
+  <rect
+     class="box"
+     x="80"
+     y="250"
+     width="260"
+     height="76"
+     id="rect8" />
+  <text
+     class="text"
+     x="210"
+     y="279"
+     text-anchor="middle"
+     id="text9">Buka halaman kamera</text>
+  <text
+     class="small"
+     x="210"
+     y="301"
+     text-anchor="middle"
+     id="text10">Student form atau Presence</text>
+  <rect
+     class="box"
+     x="80"
+     y="370"
+     width="260"
+     height="82"
+     id="rect10" />
+  <text
+     class="text"
+     x="210"
+     y="399"
+     text-anchor="middle"
+     id="text11">Ambil frame kamera</text>
+  <text
+     class="small"
+     x="210"
+     y="421"
+     text-anchor="middle"
+     id="text12">getUserMedia + canvas</text>
+  <text
+     class="small"
+     x="210"
+     y="439"
+     text-anchor="middle"
+     id="text13">Base64 JPEG</text>
+  <rect
+     class="box"
+     x="80"
+     y="496"
+     width="260"
+     height="82"
+     id="rect13" />
+  <text
+     class="text"
+     x="210"
+     y="525"
+     text-anchor="middle"
+     id="text14">Kirim JSON</text>
+  <text
+     class="small"
+     x="210"
+     y="547"
+     text-anchor="middle"
+     id="text15">/upload-frame atau /students</text>
+  <text
+     class="small"
+     x="210"
+     y="565"
+     text-anchor="middle"
+     id="text16">image, classId jika ada</text>
+  <rect
+     class="box"
+     x="450"
+     y="496"
+     width="260"
+     height="82"
+     id="rect16" />
+  <text
+     class="text"
+     x="580"
+     y="525"
+     text-anchor="middle"
+     id="text17">Terima request</text>
+  <text
+     class="small"
+     x="580"
+     y="547"
+     text-anchor="middle"
+     id="text18">validasi image</text>
+  <text
+     class="small"
+     x="580"
+     y="565"
+     text-anchor="middle"
+     id="text19">tentukan mode proses</text>
+  <polygon
+     class="decision"
+     points="580,620 710,690 580,760 450,690"
+     id="polygon19" />
+  <text
+     class="text"
+     x="580"
+     y="683"
+     text-anchor="middle"
+     id="text20">Gambar</text>
+  <text
+     class="text"
+     x="580"
+     y="703"
+     text-anchor="middle"
+     id="text21">valid?</text>
+  <rect
+     class="error"
+     x="80"
+     y="650"
+     width="260"
+     height="70"
+     id="rect21" />
+  <text
+     class="text"
+     x="210"
+     y="678"
+     text-anchor="middle"
+     id="text22">Error ke frontend</text>
+  <text
+     class="small"
+     x="210"
+     y="699"
+     text-anchor="middle"
+     id="text23">gambar kosong / invalid</text>
+  <rect
+     class="box"
+     x="450"
+     y="800"
+     width="260"
+     height="84"
+     id="rect23" />
+  <text
+     class="text"
+     x="580"
+     y="829"
+     text-anchor="middle"
+     id="text24">Decode gambar</text>
+  <text
+     class="small"
+     x="580"
+     y="851"
+     text-anchor="middle"
+     id="text25">Base64 -&gt; bytes -&gt; NumPy</text>
+  <text
+     class="small"
+     x="580"
+     y="869"
+     text-anchor="middle"
+     id="text26">cv2.imdecode -&gt; BGR</text>
+  <rect
+     class="box"
+     x="450"
+     y="930"
+     width="260"
+     height="82"
+     id="rect26" />
+  <text
+     class="text"
+     x="580"
+     y="959"
+     text-anchor="middle"
+     id="text27">Kirim ke service AI</text>
+  <text
+     class="small"
+     x="580"
+     y="981"
+     text-anchor="middle"
+     id="text28">frame, mode, classId</text>
+  <text
+     class="small"
+     x="580"
+     y="999"
+     text-anchor="middle"
+     id="text29">antiSpoofEnabled</text>
+  <rect
+     class="ai"
+     x="820"
+     y="930"
+     width="260"
+     height="82"
+     id="rect29" />
+  <text
+     class="text"
+     x="950"
+     y="959"
+     text-anchor="middle"
+     id="text30">Terima frame</text>
+  <text
+     class="small"
+     x="950"
+     y="981"
+     text-anchor="middle"
+     id="text31">decode image</text>
+  <text
+     class="small"
+     x="950"
+     y="999"
+     text-anchor="middle"
+     id="text32">siapkan input model</text>
+  <rect
+     class="ai"
+     x="820"
+     y="1060"
+     width="260"
+     height="84"
+     id="rect32" />
+  <text
+     class="text"
+     x="950"
+     y="1089"
+     text-anchor="middle"
+     id="text33">YOLO Face Detection</text>
+  <text
+     class="small"
+     x="950"
+     y="1111"
+     text-anchor="middle"
+     id="text34">model/best.pt</text>
+  <text
+     class="small"
+     x="950"
+     y="1129"
+     text-anchor="middle"
+     id="text35">bbox, confidence, label</text>
+  <polygon
+     class="decision"
+     points="950,1186 1080,1256 950,1326 820,1256"
+     id="polygon35" />
+  <text
+     class="text"
+     x="950"
+     y="1249"
+     text-anchor="middle"
+     id="text36">Ada wajah</text>
+  <text
+     class="text"
+     x="950"
+     y="1269"
+     text-anchor="middle"
+     id="text37">terdeteksi?</text>
+  <rect
+     class="box"
+     x="450"
+     y="1218"
+     width="260"
+     height="72"
+     id="rect37" />
+  <text
+     class="text"
+     x="580"
+     y="1247"
+     text-anchor="middle"
+     id="text38">Hasil kosong</text>
+  <text
+     class="small"
+     x="580"
+     y="1268"
+     text-anchor="middle"
+     id="text39">detections: []</text>
+  <rect
+     class="ai"
+     x="820"
+     y="1370"
+     width="260"
+     height="82"
+     id="rect39" />
+  <text
+     class="text"
+     x="950"
+     y="1399"
+     text-anchor="middle"
+     id="text40">Crop wajah</text>
+  <text
+     class="small"
+     x="950"
+     y="1421"
+     text-anchor="middle"
+     id="text41">potong frame sesuai bbox</text>
+  <text
+     class="small"
+     x="950"
+     y="1439"
+     text-anchor="middle"
+     id="text42">satu crop per wajah</text>
+  <polygon
+     class="decision"
+     points="950,1495 1080,1565 950,1635 820,1565"
+     id="polygon42" />
+  <text
+     class="text"
+     x="950"
+     y="1558"
+     text-anchor="middle"
+     id="text43">Anti-spoof</text>
+  <text
+     class="text"
+     x="950"
+     y="1578"
+     text-anchor="middle"
+     id="text44">aktif?</text>
+  <rect
+     class="ai"
+     x="820"
+     y="1680"
+     width="260"
+     height="86"
+     id="rect44" />
+  <text
+     class="text"
+     x="950"
+     y="1709"
+     text-anchor="middle"
+     id="text45">Jalankan anti-spoof</text>
+  <text
+     class="small"
+     x="950"
+     y="1731"
+     text-anchor="middle"
+     id="text46">resize 112x112, RGB</text>
+  <text
+     class="small"
+     x="950"
+     y="1749"
+     text-anchor="middle"
+     id="text47">mini_cnn_real_spoof.keras</text>
+  <polygon
+     class="decision"
+     points="950,1810 1080,1880 950,1950 820,1880"
+     id="polygon47" />
+  <text
+     class="text"
+     x="950"
+     y="1873"
+     text-anchor="middle"
+     id="text48">Wajah</text>
+  <text
+     class="text"
+     x="950"
+     y="1893"
+     text-anchor="middle"
+     id="text49">real?</text>
+  <rect
+     class="error"
+     x="1205"
+     y="1845"
+     width="300"
+     height="76"
+     id="rect49" />
+  <text
+     class="text"
+     x="1355"
+     y="1874"
+     text-anchor="middle"
+     id="text50">Tandai spoof</text>
+  <text
+     class="small"
+     x="1355"
+     y="1896"
+     text-anchor="middle"
+     id="text51">tidak lanjut matching</text>
+  <rect
+     class="ai"
+     x="820"
+     y="2000"
+     width="260"
+     height="86"
+     id="rect51" />
+  <text
+     class="text"
+     x="950"
+     y="2029"
+     text-anchor="middle"
+     id="text52">MobileFaceNet</text>
+  <text
+     class="small"
+     x="950"
+     y="2051"
+     text-anchor="middle"
+     id="text53">mobilefacenet_scripted.pt</text>
+  <text
+     class="small"
+     x="950"
+     y="2069"
+     text-anchor="middle"
+     id="text54">buat embedding wajah</text>
+  <polygon
+     class="decision"
+     points="950,2130 1080,2200 950,2270 820,2200"
+     id="polygon54" />
+  <text
+     class="text"
+     x="950"
+     y="2193"
+     text-anchor="middle"
+     id="text55">Mode</text>
+  <text
+     class="text"
+     x="950"
+     y="2213"
+     text-anchor="middle"
+     id="text56">registrasi?</text>
+  <!-- Enrollment branch -->
+  <rect
+     class="box"
+     x="450"
+     y="2160"
+     width="260"
+     height="86"
+     id="rect56" />
+  <text
+     class="text"
+     x="580"
+     y="2189"
+     text-anchor="middle"
+     id="text57">Validasi enroll</text>
+  <text
+     class="small"
+     x="580"
+     y="2211"
+     text-anchor="middle"
+     id="text58">tepat satu wajah</text>
+  <text
+     class="small"
+     x="580"
+     y="2229"
+     text-anchor="middle"
+     id="text59">real score cukup</text>
+  <rect
+     class="db"
+     x="1205"
+     y="2160"
+     width="300"
+     height="86"
+     id="rect59" />
+  <text
+     class="text"
+     x="1355"
+     y="2189"
+     text-anchor="middle"
+     id="text60">Simpan embedding siswa</text>
+  <text
+     class="small"
+     x="1355"
+     y="2211"
+     text-anchor="middle"
+     id="text61">students.face_embeddings</text>
+  <text
+     class="small"
+     x="1355"
+     y="2229"
+     text-anchor="middle"
+     id="text62">untuk presensi nanti</text>
+  <rect
+     class="box"
+     x="80"
+     y="2160"
+     width="260"
+     height="86"
+     id="rect62" />
+  <text
+     class="text"
+     x="210"
+     y="2189"
+     text-anchor="middle"
+     id="text63">Tampilkan hasil enroll</text>
+  <text
+     class="small"
+     x="210"
+     y="2211"
+     text-anchor="middle"
+     id="text64">student created / updated</text>
+  <text
+     class="small"
+     x="210"
+     y="2229"
+     text-anchor="middle"
+     id="text65">embedding dimensions</text>
+  <!-- Presence branch -->
+  <rect
+     class="db"
+     x="1205"
+     y="2310"
+     width="300"
+     height="86"
+     id="rect65" />
+  <text
+     class="text"
+     x="1355"
+     y="2339"
+     text-anchor="middle"
+     id="text66">Ambil embedding siswa</text>
+  <text
+     class="small"
+     x="1355"
+     y="2361"
+     text-anchor="middle"
+     id="text67">berdasarkan classId</text>
+  <text
+     class="small"
+     x="1355"
+     y="2379"
+     text-anchor="middle"
+     id="text68">atau semua siswa aktif</text>
+  <rect
+     class="ai"
+     x="820"
+     y="2310"
+     width="260"
+     height="86"
+     id="rect68" />
+  <text
+     class="text"
+     x="950"
+     y="2339"
+     text-anchor="middle"
+     id="text69">Face matching</text>
+  <text
+     class="small"
+     x="950"
+     y="2361"
+     text-anchor="middle"
+     id="text70">embedding live vs known</text>
+  <text
+     class="small"
+     x="950"
+     y="2379"
+     text-anchor="middle"
+     id="text71">threshold default 0.55</text>
+  <polygon
+     class="decision"
+     points="950,2440 1080,2510 950,2580 820,2510"
+     id="polygon71" />
+  <text
+     class="text"
+     x="950"
+     y="2503"
+     text-anchor="middle"
+     id="text72">Similarity</text>
+  <text
+     class="text"
+     x="950"
+     y="2523"
+     text-anchor="middle"
+     id="text73">&gt;= threshold?</text>
+  <rect
+     class="box"
+     x="450"
+     y="2470"
+     width="260"
+     height="80"
+     id="rect73" />
+  <text
+     class="text"
+     x="580"
+     y="2499"
+     text-anchor="middle"
+     id="text74">Terima hasil AI</text>
+  <text
+     class="small"
+     x="580"
+     y="2521"
+     text-anchor="middle"
+     id="text75">matched / unmatched</text>
+  <text
+     class="small"
+     x="580"
+     y="2539"
+     text-anchor="middle"
+     id="text76">identity jika cocok</text>
+  <rect
+     class="db"
+     x="1205"
+     y="2470"
+     width="300"
+     height="86"
+     id="rect76" />
+  <text
+     class="text"
+     x="1355"
+     y="2499"
+     text-anchor="middle"
+     id="text77">Simpan / update absensi</text>
+  <text
+     class="small"
+     x="1355"
+     y="2521"
+     text-anchor="middle"
+     id="text78">cek jadwal kelas</text>
+  <text
+     class="small"
+     x="1355"
+     y="2539"
+     text-anchor="middle"
+     id="text79">presence, late, absen</text>
+  <rect
+     class="box"
+     x="80"
+     y="2470"
+     width="260"
+     height="86"
+     id="rect79" />
+  <text
+     class="text"
+     x="210"
+     y="2499"
+     text-anchor="middle"
+     id="text80">Tampilkan hasil realtime</text>
+  <text
+     class="small"
+     x="210"
+     y="2521"
+     text-anchor="middle"
+     id="text81">bbox, liveness, nama</text>
+  <text
+     class="small"
+     x="210"
+     y="2539"
+     text-anchor="middle"
+     id="text82">status absensi</text>
+  <circle
+     class="end"
+     cx="210"
+     cy="2630"
+     r="18"
+     id="circle82" />
+  <circle
+     fill="#f8fafc"
+     cx="210"
+     cy="2630"
+     r="9"
+     id="circle83" />
+  <!-- Arrows: top-down common flow -->
+  <path
+     class="flow"
+     d="M210,228 L210,250"
+     id="path84" />
+  <path
+     class="flow"
+     d="M210,326 L210,370"
+     id="path85" />
+  <path
+     class="flow"
+     d="M210,452 L210,496"
+     id="path86" />
+  <path
+     class="flow"
+     d="M340,537 L450,537"
+     id="path87" />
+  <path
+     class="flow"
+     d="M580,578 L580,620"
+     id="path88" />
+  <path
+     class="flow"
+     d="M450,690 L340,685"
+     id="path89" />
+  <text
+     class="label"
+     x="392"
+     y="666"
+     text-anchor="middle"
+     id="text89">Tidak</text>
+  <path
+     class="flow"
+     d="M580,760 L580,800"
+     id="path90" />
+  <text
+     class="label"
+     x="604"
+     y="783"
+     id="text90">Ya</text>
+  <path
+     class="flow"
+     d="M580,884 L580,930"
+     id="path91" />
+  <path
+     class="flow"
+     d="M710,971 L820,971"
+     id="path92" />
+  <path
+     class="flow"
+     d="M950,1012 L950,1060"
+     id="path93" />
+  <path
+     class="flow"
+     d="M950,1144 L950,1186"
+     id="path94" />
+  <path
+     class="flow"
+     d="M820,1256 L710,1254"
+     id="path95" />
+  <text
+     class="label"
+     x="765"
+     y="1232"
+     text-anchor="middle"
+     id="text95">Tidak</text>
+  <path
+     class="flow"
+     d="M950,1326 L950,1370"
+     id="path96" />
+  <text
+     class="label"
+     x="974"
+     y="1348"
+     id="text96">Ya</text>
+  <path
+     class="flow"
+     d="M950,1452 L950,1495"
+     id="path97" />
+  <path
+     class="flow"
+     d="M950,1635 L950,1680"
+     id="path98" />
+  <text
+     class="label"
+     x="974"
+     y="1658"
+     id="text98">Ya</text>
+  <path
+     class="flow"
+     d="M1080,1565 L1128,1565 L1128,1965 L950,1965 L950,2000"
+     id="path99" />
+  <text
+     class="label"
+     x="1110"
+     y="1545"
+     id="text99">Tidak</text>
+  <path
+     class="flow"
+     d="M950,1766 L950,1810"
+     id="path100" />
+  <path
+     class="flow"
+     d="M1080,1880 L1205,1883"
+     id="path101" />
+  <text
+     class="label"
+     x="1140"
+     y="1862"
+     text-anchor="middle"
+     id="text101">Tidak</text>
+  <path
+     class="flow"
+     d="M950,1950 L950,2000"
+     id="path102" />
+  <text
+     class="label"
+     x="974"
+     y="1974"
+     id="text102">Ya</text>
+  <path
+     class="flow"
+     d="M950,2086 L950,2130"
+     id="path103" />
+  <!-- Enrollment arrows -->
+  <path
+     class="flow"
+     d="M820,2200 L710,2203"
+     id="path104" />
+  <text
+     class="label"
+     x="765"
+     y="2180"
+     text-anchor="middle"
+     id="text104">Ya</text>
+  <path
+     class="flow"
+     d="M580,2246 L580,2278 L1355,2278 L1355,2246"
+     id="path105" />
+  <path
+     class="flow"
+     d="M210,2246 L210,2290 L52,2290 L52,2630 L192,2630"
+     id="path107" />
+  <!-- Presence arrows -->
+  <path
+     class="flow"
+     d="M1080,2200 L1130,2200 L1130,2353 L1205,2353"
+     id="path108" />
+  <text
+     class="label"
+     x="1125"
+     y="2180"
+     id="text108">Tidak</text>
+  <path
+     class="flow"
+     d="M1205,2353 L1080,2353"
+     id="path109" />
+  <path
+     class="flow"
+     d="M950,2396 L950,2440"
+     id="path110" />
+  <path
+     class="flow"
+     d="M820,2510 L710,2510"
+     id="path111" />
+  <text
+     class="label"
+     x="765"
+     y="2490"
+     text-anchor="middle"
+     id="text111">Tidak</text>
+  <path
+     class="flow"
+     d="M1080,2510 L1205,2513"
+     id="path112" />
+  <text
+     class="label"
+     x="1140"
+     y="2490"
+     text-anchor="middle"
+     id="text112">Ya</text>
+  <path
+     class="flow"
+     d="M1355,2556 L1355,2590 L580,2590 L580,2550"
+     id="path113" />
+  <path
+     class="flow"
+     d="M450,2510 L340,2513"
+     id="path114" />
+  <path
+     class="flow"
+     d="M210,2556 L210,2612"
+     id="path115" />
+  <metadata
+     id="metadata115">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Workflow Pendeteksian Wajah dengan Face AI Service Terpisah</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>
