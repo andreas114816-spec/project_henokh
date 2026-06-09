@@ -27,6 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent
 FACE_MODEL_PATH = BASE_DIR / "model" / "best.pt"
 SPOOF_MODEL_PATH = BASE_DIR / "model" / "mini_cnn_real_spoof.keras"
 SPOOF_LABELS = ("real", "spoof")
+SPOOF_REAL_THRESHOLD = 0.5
 ANTI_SPOOF_SETTING_KEY = "anti_spoof_enabled"
 FACE_MATCH_THRESHOLD = float(os.getenv("FACE_MATCH_THRESHOLD", "0.55"))
 APP_TIMEZONE = ZoneInfo(os.getenv("APP_TIMEZONE", "Asia/Jakarta"))
@@ -1235,16 +1236,18 @@ def classify_real_spoof(frame, x1, y1, x2, y2):
     face = cv2.resize(face, (112, 112), interpolation=cv2.INTER_AREA)
     face = face.astype("float32") / 255.0
     scores = get_spoof_model().predict(np.expand_dims(face, axis=0), verbose=0)[0]
-    class_id = int(np.argmax(scores))
+    real_score = float(scores[0])
+    class_id = 0 if real_score >= SPOOF_REAL_THRESHOLD else 1
 
     return {
         "label": SPOOF_LABELS[class_id],
         "classId": class_id,
-        "confidence": round(float(scores[class_id]), 4),
+        "confidence": round(real_score, 4),
         "scores": {
             label: round(float(score), 4)
             for label, score in zip(SPOOF_LABELS, scores)
-        }
+        },
+        "threshold": SPOOF_REAL_THRESHOLD
     }
 
 
@@ -1629,7 +1632,7 @@ def create_student():
             detection = detections[0]
             real_score = (detection.get("liveness") or {}).get("scores", {}).get("real", 0)
 
-            if anti_spoof_enabled and real_score < 0.5:
+            if anti_spoof_enabled and real_score < SPOOF_REAL_THRESHOLD:
                 return jsonify({
                     "success": False,
                     "message": "Face must pass real-person check before saving"

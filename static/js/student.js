@@ -123,11 +123,12 @@ $(document).ready(function () {
             const liveness = detection.liveness;
             const antiSpoofActive = !liveness || liveness.enabled !== false;
             const realScore = Number(liveness && liveness.scores ? liveness.scores.real : 0);
+            const realThreshold = Number(liveness && liveness.threshold ? liveness.threshold : 0.14);
             const livenessText = liveness
                 ? (antiSpoofActive ? ` | real ${Math.round(realScore * 100)}%` : " | anti-spoof off")
                 : "";
             const label = `${detection.label || "face"} ${Math.round(Number(detection.confidence || 0) * 100)}%${livenessText}`;
-            const color = !antiSpoofActive || realScore >= 0.6 ? "#22c55e" : "#ef4444";
+            const color = !antiSpoofActive || realScore >= realThreshold ? "#22c55e" : "#ef4444";
             const width = box.width * scaleX;
             const height = box.height * scaleY;
             const x = overlayCanvas.width - (box.x * scaleX) - width;
@@ -143,7 +144,7 @@ $(document).ready(function () {
             const labelX = Math.min(Math.max(0, x), Math.max(0, overlayCanvas.width - textWidth - 8));
 
             overlayContext.fillRect(labelX, labelY, textWidth + 8, labelHeight);
-            overlayContext.fillStyle = !antiSpoofActive || realScore >= 0.6 ? "#052e16" : "#ffffff";
+            overlayContext.fillStyle = !antiSpoofActive || realScore >= realThreshold ? "#052e16" : "#ffffff";
             overlayContext.fillText(label, labelX + 4, labelY + 3);
         });
     }
