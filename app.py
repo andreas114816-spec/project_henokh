@@ -5,20 +5,24 @@ os.environ.setdefault("YOLO_CONFIG_DIR", "/tmp")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 import calendar
+import io
+import json
 import math
+import re
+import zipfile
 from datetime import date, datetime, time, timedelta
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from zoneinfo import ZoneInfo
 
 from functools import wraps
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session as flask_session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session as flask_session, flash, send_file
 import base64
 import cv2
 import numpy as np
-from database import SessionLocal, init_db, migrate_db, seed_admin_user
+from database import Base, SessionLocal, engine, init_db, migrate_db, seed_admin_user
 from models.db_models import AppSetting, Attendance, SchoolClass, Student, Teacher, User, class_students
-from sqlalchemy import or_
+from sqlalchemy import Date as SQLDate, DateTime as SQLDateTime, MetaData, Table, Time as SQLTime, inspect, or_, select, text
 from sqlalchemy.orm import selectinload
 
 app = Flask(__name__)
@@ -35,6 +39,14 @@ APP_TIMEZONE = ZoneInfo(os.getenv("APP_TIMEZONE", "Asia/Jakarta"))
 face_model = None
 spoof_model = None
 PER_PAGE_OPTIONS = (10, 25, 50, 100)
+BULK_STUDENT_ROOT = "data"
+BULK_STUDENT_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+MAX_BULK_STUDENT_ZIP_BYTES = 100 * 1024 * 1024
+MAX_BULK_STUDENT_PHOTO_BYTES = 15 * 1024 * 1024
+BULK_STUDENT_FAILURE_LOG_DIR = BASE_DIR / "logs"
+DATABASE_BACKUP_FORMAT = "henokh-db-backup"
+DATABASE_BACKUP_VERSION = 1
+MAX_DATABASE_BACKUP_BYTES = 200 * 1024 * 1024
 
 
 class ModelUnavailableError(RuntimeError):
@@ -62,6 +74,11 @@ def parse_optional_int(value):
 
 def is_digits_only(value):
     return bool(value) and value.isdigit()
+
+
+def format_person_name(value):
+    words = re.sub(r"\s+", " ", (value or "").strip()).split(" ")
+    return " ".join(word[:1].upper() + word[1:].lower() for word in words if word)
 
 
 def parse_date_field(value):
@@ -202,6 +219,205 @@ def build_archived_restore_data(session):
             .all()
         ),
     }
+
+
+def get_database_backup_tables(connection):
+    tables = list(Base.metadata.sorted_tables)
+    table_names = {table.name for table in tables}
+
+    if "schema_migrations" in inspect(connection).get_table_names() and "schema_migrations" not in table_names:
+        metadata = MetaData()
+        tables.insert(0, Table("schema_migrations", metadata, autoload_with=connection))
+
+    return tables
+
+
+def serialize_database_value(value):
+    if isinstance(value, datetime):
+        return value.isoformat()
+
+    if isinstance(value, date):
+        return value.isoformat()
+
+    if isinstance(value, time):
+        return value.isoformat()
+
+    return value
+
+
+def deserialize_database_value(column, value):
+    if value is None:
+        return None
+
+    if isinstance(column.type, SQLDateTime):
+        return datetime.fromisoformat(value)
+
+    if isinstance(column.type, SQLDate):
+        return date.fromisoformat(value)
+
+    if isinstance(column.type, SQLTime):
+        return time.fromisoformat(value)
+
+    return value
+
+
+def build_database_backup_payload():
+    generated_at = current_app_datetime()
+
+    with engine.connect() as connection:
+        tables = get_database_backup_tables(connection)
+        payload = {
+            "format": DATABASE_BACKUP_FORMAT,
+            "version": DATABASE_BACKUP_VERSION,
+            "generated_at": generated_at.isoformat(),
+            "tables": {},
+            "table_order": [table.name for table in tables],
+        }
+
+        for table in tables:
+            rows = []
+
+            for row in connection.execute(select(table)).mappings():
+                rows.append({
+                    column.name: serialize_database_value(row[column.name])
+                    for column in table.columns
+                })
+
+            payload["tables"][table.name] = rows
+
+    return payload
+
+
+def load_database_backup_payload(uploaded_file):
+    backup_bytes = uploaded_file.read(MAX_DATABASE_BACKUP_BYTES + 1)
+
+    if len(backup_bytes) > MAX_DATABASE_BACKUP_BYTES:
+        raise ValueError("Backup file is too large. Maximum allowed size is 200 MB.")
+
+    try:
+        payload = json.loads(backup_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("Backup file must be a valid Henokh JSON backup.") from error
+
+    if payload.get("format") != DATABASE_BACKUP_FORMAT:
+        raise ValueError("Backup file format is not recognized.")
+
+    if payload.get("version") != DATABASE_BACKUP_VERSION:
+        raise ValueError("Backup file version is not supported.")
+
+    if not isinstance(payload.get("tables"), dict):
+        raise ValueError("Backup file does not contain database tables.")
+
+    return payload
+
+
+def restore_database_backup_payload(payload):
+    restored_rows = 0
+    repaired_class_students = 0
+
+    with engine.begin() as connection:
+        tables = get_database_backup_tables(connection)
+        missing_tables = [
+            table.name
+            for table in tables
+            if table.name != "schema_migrations" and table.name not in payload["tables"]
+        ]
+
+        if missing_tables:
+            raise ValueError(f"Backup file is missing table data: {', '.join(missing_tables)}")
+
+        connection.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+
+        try:
+            for table in reversed(tables):
+                connection.execute(table.delete())
+
+            for table in tables:
+                rows = payload["tables"].get(table.name, [])
+
+                if not isinstance(rows, list):
+                    raise ValueError(f"Backup table {table.name} is invalid.")
+
+                restored_rows += len(rows)
+
+                for row in rows:
+                    if not isinstance(row, dict):
+                        raise ValueError(f"Backup table {table.name} contains invalid row data.")
+
+                    values = {
+                        column.name: deserialize_database_value(column, row.get(column.name))
+                        for column in table.columns
+                        if column.name in row
+                    }
+                    connection.execute(table.insert().values(**values))
+        finally:
+            connection.execute(text("SET FOREIGN_KEY_CHECKS=1"))
+
+        repaired_class_students = repair_presence_structure_after_restore(connection)
+
+    return {
+        "restored_rows": restored_rows,
+        "repaired_class_students": repaired_class_students,
+    }
+
+
+def repair_presence_structure_after_restore(connection):
+    class_ids = [
+        row[0]
+        for row in connection.execute(text("""
+            SELECT id
+            FROM classes
+            ORDER BY id
+            LIMIT 2
+        """))
+    ]
+
+    active_student_count = connection.execute(text("""
+        SELECT COUNT(*)
+        FROM students
+        WHERE deleted_at IS NULL
+    """)).scalar()
+
+    if not active_student_count:
+        return 0
+
+    if not class_ids:
+        now = current_app_datetime()
+        result = connection.execute(
+            text("""
+                INSERT INTO classes (name, class_code, created_at, updated_at)
+                VALUES (:name, :class_code, :created_at, :updated_at)
+            """),
+            {
+                "name": "Restored Class",
+                "class_code": "RESTORED",
+                "created_at": now,
+                "updated_at": now,
+            }
+        )
+        class_ids = [result.lastrowid]
+
+    if len(class_ids) != 1:
+        return 0
+
+    class_student_count = connection.execute(
+        text("SELECT COUNT(*) FROM class_students")
+    ).scalar()
+
+    if class_student_count:
+        return 0
+
+    result = connection.execute(
+        text("""
+            INSERT IGNORE INTO class_students (class_id, student_id)
+            SELECT :class_id, id
+            FROM students
+            WHERE deleted_at IS NULL
+        """),
+        {"class_id": class_ids[0]}
+    )
+
+    return result.rowcount or 0
 
 
 def build_presence_dashboard_context(session):
@@ -662,6 +878,48 @@ def update_anti_spoof_setting():
     return redirect(url_for("dashboard", section="settings"))
 
 
+@app.route("/settings/database-backup", methods=["POST"])
+@login_required
+def backup_database():
+    payload = build_database_backup_payload()
+    backup_bytes = json.dumps(payload, indent=2).encode("utf-8")
+    timestamp = current_app_datetime().strftime("%Y%m%d_%H%M%S")
+    filename = f"henokh_db_backup_{timestamp}.json"
+
+    return send_file(
+        io.BytesIO(backup_bytes),
+        mimetype="application/json",
+        as_attachment=True,
+        download_name=filename
+    )
+
+
+@app.route("/settings/database-restore", methods=["POST"])
+@login_required
+def restore_database():
+    uploaded_file = request.files.get("database_backup")
+
+    if uploaded_file is None or not uploaded_file.filename:
+        flash("Choose a database backup file before restoring.", "error")
+        return redirect(url_for("dashboard", section="settings"))
+
+    try:
+        payload = load_database_backup_payload(uploaded_file)
+        restore_result = restore_database_backup_payload(payload)
+        message = f"Database restored from backup. {restore_result['restored_rows']} rows imported."
+
+        if restore_result["repaired_class_students"]:
+            message += f" Assigned {restore_result['repaired_class_students']} students to the restored class."
+
+        flash(message, "success")
+    except ValueError as error:
+        flash(str(error), "error")
+    except Exception as error:
+        flash(f"Database restore failed: {error}", "error")
+
+    return redirect(url_for("dashboard", section="settings"))
+
+
 @app.route("/settings/cleanup-archived", methods=["POST"])
 @login_required
 def cleanup_archived_data():
@@ -1092,6 +1350,103 @@ def edit_student(student_id):
         SessionLocal.remove()
 
 
+@app.route("/students/bulk-import", methods=["POST"])
+@login_required
+def bulk_import_students():
+    uploaded_file = request.files.get("student_zip")
+
+    if uploaded_file is None or not uploaded_file.filename:
+        flash("Choose a .zip file before importing students.", "error")
+        return redirect(url_for("dashboard", section="students"))
+
+    if not uploaded_file.filename.lower().endswith(".zip"):
+        flash("Bulk student import only accepts .zip files.", "error")
+        return redirect(url_for("dashboard", section="students"))
+
+    zip_bytes = uploaded_file.read(MAX_BULK_STUDENT_ZIP_BYTES + 1)
+
+    if len(zip_bytes) > MAX_BULK_STUDENT_ZIP_BYTES:
+        flash("ZIP file is too large. Maximum allowed size is 100 MB.", "error")
+        return redirect(url_for("dashboard", section="students"))
+
+    try:
+        zip_file = zipfile.ZipFile(io.BytesIO(zip_bytes))
+    except zipfile.BadZipFile:
+        flash("Uploaded file is not a valid ZIP archive.", "error")
+        return redirect(url_for("dashboard", section="students"))
+
+    created_count = 0
+    updated_count = 0
+    warning_count = 0
+    errors = []
+    db_session = SessionLocal()
+
+    try:
+        with zip_file:
+            student_photos, structure_errors = find_bulk_student_photos(zip_file)
+            errors.extend(structure_errors)
+
+            if not student_photos:
+                flash("No students imported. Expected folders like data/12345 Student Name/student-photo.jpg.", "error")
+                return redirect(url_for("dashboard", section="students"))
+
+            for folder_name, zip_info in sorted(student_photos.items()):
+                nim, name = parse_bulk_student_folder(folder_name)
+                label = folder_name
+
+                if not nim or not name:
+                    errors.append(f"{label}: folder name must be 'NIM Name'")
+                    continue
+
+                if zip_info.file_size > MAX_BULK_STUDENT_PHOTO_BYTES:
+                    errors.append(f"{label}: photo file is larger than 15 MB")
+                    continue
+
+                try:
+                    image_bytes = zip_file.read(zip_info)
+                    frame = decode_image_bytes(image_bytes)
+                    face_embedding, embedding_warning = build_student_face_embedding(frame)
+                    student, action = save_student_with_embedding(db_session, nim, name, face_embedding)
+                    db_session.commit()
+
+                    if action == "created":
+                        created_count += 1
+                    else:
+                        updated_count += 1
+
+                    if embedding_warning:
+                        warning_count += 1
+                except (ModelUnavailableError, ValueError) as error:
+                    db_session.rollback()
+                    errors.append(f"{label}: {error}")
+                except Exception as error:
+                    db_session.rollback()
+                    errors.append(f"{label}: failed to import ({error})")
+    finally:
+        SessionLocal.remove()
+
+    imported_count = created_count + updated_count
+    summary = f"Bulk import complete: {created_count} created, {updated_count} updated"
+
+    if warning_count:
+        summary += f", {warning_count} saved without face embedding"
+
+    summary += f", {len(errors)} failed."
+    flash(summary, "success" if imported_count else "error")
+
+    failure_log_path = write_bulk_student_failure_log(
+        uploaded_file.filename,
+        errors,
+        created_count,
+        updated_count
+    )
+
+    if failure_log_path:
+        flash(f"Failure summary saved to {failure_log_path.relative_to(BASE_DIR)}.", "error")
+
+    return redirect(url_for("dashboard", section="students"))
+
+
 @app.route("/teachers/new")
 @login_required
 def new_teacher():
@@ -1268,6 +1623,10 @@ def decode_image_data(image_data):
         image_data = image_data.split(",", 1)[1]
 
     image_bytes = base64.b64decode(image_data)
+    return decode_image_bytes(image_bytes)
+
+
+def decode_image_bytes(image_bytes):
     np_arr = np.frombuffer(image_bytes, np.uint8)
     return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
@@ -1283,6 +1642,146 @@ def crop_detected_face(frame, detection):
         return None
 
     return frame[top:bottom, left:right]
+
+
+def detection_area(detection):
+    width = max(0, float(detection.get("width") or 0))
+    height = max(0, float(detection.get("height") or 0))
+    return width * height
+
+
+def select_best_registration_detection(detections):
+    if not detections:
+        return None
+
+    return max(
+        detections,
+        key=lambda detection: (
+            float(detection.get("confidence") or 0),
+            detection_area(detection)
+        )
+    )
+
+
+def build_student_face_embedding(frame):
+    if frame is None:
+        raise ValueError("Invalid face image")
+
+    anti_spoof_enabled = is_anti_spoof_enabled()
+    detections = detect_faces(frame, anti_spoof_enabled=anti_spoof_enabled)
+
+    detection = select_best_registration_detection(detections)
+
+    if detection is None:
+        raise ValueError("No face detected before saving")
+
+    real_score = (detection.get("liveness") or {}).get("scores", {}).get("real", 0)
+
+    if anti_spoof_enabled and real_score < SPOOF_REAL_THRESHOLD:
+        raise ValueError("Face must pass real-person check before saving")
+
+    face = crop_detected_face(frame, detection)
+
+    if face is None:
+        raise ValueError("Unable to crop detected face")
+
+    try:
+        from models.mobilefacenet import build_face_embedding
+
+        return build_face_embedding(face), None
+    except FileNotFoundError as error:
+        return None, str(error)
+
+
+def parse_bulk_student_folder(folder_name):
+    normalized_name = re.sub(r"\s+", " ", folder_name.strip())
+    match = re.fullmatch(r"(\d+)\s+(.+)", normalized_name)
+
+    if not match:
+        return None, None
+
+    return match.group(1), format_person_name(match.group(2))
+
+
+def find_bulk_student_photos(zip_file):
+    photos = {}
+    errors = []
+
+    for zip_info in zip_file.infolist():
+        if zip_info.is_dir():
+            continue
+
+        path = PurePosixPath(zip_info.filename)
+        parts = path.parts
+
+        filename = PurePosixPath(parts[-1]).name.lower() if parts else ""
+        photo_path = PurePosixPath(filename)
+        is_allowed_photo = (
+            len(parts) == 3
+            and parts[0] == BULK_STUDENT_ROOT
+            and photo_path.suffix in BULK_STUDENT_PHOTO_EXTENSIONS
+        )
+
+        if is_allowed_photo:
+            folder_name = parts[1].strip()
+
+            if not folder_name:
+                errors.append(f"{zip_info.filename}: missing student folder name")
+            elif folder_name in photos:
+                errors.append(f"{zip_info.filename}: duplicate student folder")
+            else:
+                photos[folder_name] = zip_info
+            continue
+
+        if len(parts) > 1 and parts[0] == BULK_STUDENT_ROOT:
+            errors.append(f"{zip_info.filename}: expected one image file inside data/NIM Name with jpg, jpeg, png, webp, or bmp extension")
+
+    return photos, errors
+
+
+def write_bulk_student_failure_log(uploaded_filename, errors, created_count, updated_count):
+    if not errors:
+        return None
+
+    BULK_STUDENT_FAILURE_LOG_DIR.mkdir(exist_ok=True)
+    generated_at = current_app_datetime()
+    timestamp = generated_at.strftime("%Y%m%d_%H%M%S_%f")
+    log_path = BULK_STUDENT_FAILURE_LOG_DIR / f"bulk_student_failures_{timestamp}.txt"
+
+    lines = [
+        "Bulk Student Registration Failure Log",
+        f"Generated at: {generated_at.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"Source file: {uploaded_filename or '-'}",
+        f"Created: {created_count}",
+        f"Updated: {updated_count}",
+        f"Failed: {len(errors)}",
+    ]
+
+    log_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return log_path
+
+
+def save_student_with_embedding(session, nim, name, face_embedding, student=None):
+    name = format_person_name(name)
+
+    if student is None:
+        student = session.query(Student).filter_by(nim=nim).one_or_none()
+
+    if student is None:
+        student = Student(name=name, nim=nim)
+        session.add(student)
+        action = "created"
+    else:
+        student.name = name
+        student.nim = nim
+        action = "updated"
+
+    student.deleted_at = None
+
+    if face_embedding is not None:
+        student.set_face_embedding(face_embedding)
+
+    return student, action
 
 
 def is_time_between(current_time, start_time, end_time):
@@ -1613,56 +2112,14 @@ def create_student():
         if image_data:
             frame = decode_image_data(image_data)
 
-            if frame is None:
-                return jsonify({"success": False, "message": "Invalid face image"}), 400
-
-            anti_spoof_enabled = is_anti_spoof_enabled()
-
             try:
-                detections = detect_faces(frame, anti_spoof_enabled=anti_spoof_enabled)
+                face_embedding, embedding_warning = build_student_face_embedding(frame)
             except ModelUnavailableError as error:
                 return jsonify({"success": False, "message": str(error)}), 503
+            except ValueError as error:
+                return jsonify({"success": False, "message": str(error)}), 400
 
-            if len(detections) != 1:
-                return jsonify({
-                    "success": False,
-                    "message": "Capture exactly one face before saving"
-                }), 400
-
-            detection = detections[0]
-            real_score = (detection.get("liveness") or {}).get("scores", {}).get("real", 0)
-
-            if anti_spoof_enabled and real_score < SPOOF_REAL_THRESHOLD:
-                return jsonify({
-                    "success": False,
-                    "message": "Face must pass real-person check before saving"
-                }), 400
-
-            face = crop_detected_face(frame, detection)
-
-            if face is None:
-                return jsonify({"success": False, "message": "Unable to crop detected face"}), 400
-
-            try:
-                from models.mobilefacenet import build_face_embedding
-
-                face_embedding = build_face_embedding(face)
-            except FileNotFoundError as error:
-                embedding_warning = str(error)
-
-        if student is None:
-            student = Student(name=name, nim=nim)
-            session.add(student)
-            action = "created"
-        else:
-            student.name = name
-            student.nim = nim
-            action = "updated"
-
-        student.deleted_at = None
-
-        if face_embedding is not None:
-            student.set_face_embedding(face_embedding)
+        student, action = save_student_with_embedding(session, nim, name, face_embedding, student=student)
 
         session.commit()
 

@@ -65,6 +65,18 @@
                 </div>
             {% endmacro %}
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <section class="fixed right-4 top-4 z-50 w-[calc(100%-2rem)] max-w-md space-y-2 sm:right-6 sm:top-6" aria-live="polite">
+                        {% for category, message in messages %}
+                            <div class="rounded-lg border px-4 py-3 text-sm shadow-lg {% if category == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </section>
+                {% endif %}
+            {% endwith %}
+
             {% if active_section == "overview" %}
                 <header class="mb-6">
                     <h2 class="text-3xl font-bold">Overview</h2>
@@ -106,6 +118,38 @@
                         Add Student
                     </a>
                 </header>
+
+                <section class="mb-5 rounded-lg bg-white p-5 shadow">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Bulk Register Students</h3>
+                            <p class="mt-1 text-sm text-gray-600">Upload a ZIP with folders like <span class="font-mono">data/12345 Student Name/student-photo.jpg</span>. Common photo extensions are accepted.</p>
+                        </div>
+                        <form
+                            action="{{ url_for('bulk_import_students') }}"
+                            method="post"
+                            enctype="multipart/form-data"
+                            class="flex flex-col gap-3 sm:flex-row sm:items-center"
+                            data-bulk-import-form>
+                            <input
+                                type="file"
+                                name="student_zip"
+                                accept=".zip,application/zip"
+                                required
+                                data-bulk-import-input
+                                class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200 sm:w-80">
+                            <button
+                                type="submit"
+                                data-bulk-import-button
+                                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                Import ZIP
+                            </button>
+                        </form>
+                    </div>
+                    <p class="mt-3 hidden text-sm font-medium text-blue-700" data-bulk-import-status>
+                        Bulk register is processing. Please wait...
+                    </p>
+                </section>
 
                 <section class="rounded-lg bg-white p-5 shadow">
                     <div class="overflow-x-auto">
@@ -433,6 +477,55 @@
                 </section>
 
                 <section class="mt-5 w-full rounded-lg bg-white p-5 shadow">
+                    <div class="grid gap-5 lg:grid-cols-2">
+                        <div class="flex flex-col justify-between gap-4 rounded-lg border border-gray-200 p-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Database Backup</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    Download a JSON backup containing users, students, teachers, classes, attendance, settings, and class assignments.
+                                </p>
+                            </div>
+                            <form action="{{ url_for('backup_database') }}" method="post">
+                                <button
+                                    type="submit"
+                                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                    Download Backup
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="flex flex-col justify-between gap-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-red-700">Database Restore</h3>
+                                <p class="mt-1 text-sm text-red-700">
+                                    Restore from a Henokh backup file. This replaces the current database data.
+                                </p>
+                            </div>
+                            <form
+                                action="{{ url_for('restore_database') }}"
+                                method="post"
+                                enctype="multipart/form-data"
+                                class="flex flex-col gap-3 sm:flex-row sm:items-center"
+                                data-confirm-title="Restore Database"
+                                data-confirm-message="Restore this database backup? Current users, students, teachers, classes, attendance, and settings will be replaced."
+                                data-confirm-action="Restore Database">
+                                <input
+                                    type="file"
+                                    name="database_backup"
+                                    accept=".json,application/json"
+                                    required
+                                    class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-100">
+                                <button
+                                    type="submit"
+                                    class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                                    Restore Backup
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mt-5 w-full rounded-lg bg-white p-5 shadow">
                     <header class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 class="text-lg font-semibold">User Accounts</h3>
@@ -740,5 +833,29 @@
         </main>
     </div>
     <script src="{{ url_for('static', filename='js/confirm-modal.js') }}"></script>
+    <script>
+        document.querySelectorAll("[data-bulk-import-form]").forEach(function (form) {
+            form.addEventListener("submit", function () {
+                const button = form.querySelector("[data-bulk-import-button]");
+                const input = form.querySelector("[data-bulk-import-input]");
+                const status = document.querySelector("[data-bulk-import-status]");
+
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = "Processing...";
+                    button.classList.add("cursor-not-allowed", "bg-blue-400");
+                    button.classList.remove("hover:bg-blue-700");
+                }
+
+                if (input) {
+                    input.classList.add("pointer-events-none", "opacity-60");
+                }
+
+                if (status) {
+                    status.classList.remove("hidden");
+                }
+            });
+        });
+    </script>
 </body>
 </html>

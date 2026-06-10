@@ -24,7 +24,7 @@ $(document).ready(function () {
             await video.play();
             syncOverlaySize();
             startDetectionLoop();
-            $("#cameraStatus").text("Camera started. Align one face in the frame.");
+            $("#cameraStatus").text("Camera started. The clearest detected face will be saved.");
         } catch (error) {
             console.error(error);
             $("#cameraStatus").text("Failed to access camera.");

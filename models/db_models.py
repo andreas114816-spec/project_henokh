@@ -54,7 +54,6 @@ class Teacher(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     nip: Mapped[str] = mapped_column("NIP", String(40), unique=True, nullable=False, index=True)
-    subject: Mapped[str | None] = mapped_column(String(120), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     classes: Mapped[list["SchoolClass"]] = relationship(back_populates="teacher")

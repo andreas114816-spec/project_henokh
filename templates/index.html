@@ -10,6 +10,14 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+    {% if error %}
+        <section class="fixed right-4 top-4 z-50 w-[calc(100%-2rem)] max-w-md sm:right-6 sm:top-6" aria-live="polite">
+            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-lg">
+                {{ error }}
+            </div>
+        </section>
+    {% endif %}
+
     <main class="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
         <div class="mb-6 text-center">
             <h1 class="text-2xl font-bold text-gray-900">Presence Login</h1>
@@ -17,10 +25,6 @@
         </div>
 
         <form action="{{ url_for('login') }}" method="post" class="space-y-4">
-            {% if error %}
-                <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</p>
-            {% endif %}
-
             <div>
                 <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                 <input
