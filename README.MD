@@ -258,6 +258,69 @@ Port MariaDB bisa saja berbeda. Script menyimpan port MariaDB yang berhasil terd
 /tmp/henokh_mariadb_port
 ```
 
+## Backup dan Restore Database dari Aplikasi
+
+Aplikasi punya fitur backup dan restore database langsung dari halaman `Settings`.
+
+Fitur ini memakai file backup JSON dari aplikasi, bukan file SQL dari `mysqldump`. File backup berisi data utama aplikasi seperti user, student, teacher, class, attendance, setting aplikasi, relasi class-student, dan data migrasi jika tabelnya ada.
+
+### Backup Database
+
+Langkah backup:
+
+1. Jalankan aplikasi:
+
+```powershell
+python henokh_project.py run
+```
+
+2. Buka browser:
+
+```text
+http://localhost:8000
+```
+
+3. Login sebagai admin.
+4. Masuk ke menu `Settings`.
+5. Cari bagian `Database Backup`.
+6. Klik tombol `Download Backup`.
+7. Browser akan mengunduh file seperti:
+
+```text
+henokh_db_backup_YYYYMMDD_HHMMSS.json
+```
+
+Simpan file ini di tempat aman. File ini bisa dipakai untuk mengembalikan data aplikasi nanti.
+
+### Restore Database
+
+Langkah restore:
+
+1. Jalankan aplikasi:
+
+```powershell
+python henokh_project.py run
+```
+
+2. Buka `http://localhost:8000`.
+3. Login sebagai admin.
+4. Masuk ke menu `Settings`.
+5. Cari bagian `Database Restore`.
+6. Pilih file backup `.json` yang sebelumnya dibuat dari tombol `Download Backup`.
+7. Klik `Restore Backup`.
+8. Saat dialog konfirmasi muncul, pilih `Restore Database`.
+
+Restore akan mengganti data database saat ini dengan isi file backup. Jadi sebelum restore, pastikan file backup yang dipilih memang benar.
+
+Setelah restore berhasil, aplikasi akan menampilkan notifikasi. Kalau backup berisi data student tetapi tidak punya data class/relasi class-student, aplikasi akan mencoba memperbaiki struktur presence dengan membuat `Restored Class` dan memasukkan student aktif ke class tersebut supaya menu Presence tetap bisa dipakai.
+
+### Catatan Penting
+
+1. Gunakan fitur restore hanya dengan file backup yang dibuat oleh aplikasi Henokh ini.
+2. Restore bersifat mengganti data, bukan menambahkan data ke database lama.
+3. Jika restore dilakukan dari backup lama, data baru yang dibuat setelah backup tersebut bisa hilang.
+4. Setelah restore, cek menu `Student`, `Class`, dan `Presence` untuk memastikan data tampil sesuai kebutuhan.
+
 ## Menghubungkan MariaDB ke DBeaver
 
 MariaDB yang dibuat oleh `henokh_project.py` juga bisa dibuka lewat DBeaver. Ini berguna kalau ingin melihat isi tabel, mengecek data absensi, atau menjalankan query SQL secara manual.
