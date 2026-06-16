@@ -22,14 +22,16 @@ PYTHON_BIN = f"{PYTHON_PREFIX}/bin/python3.12"
 
 VENV_NAME = ".venv"
 
-# Flask example:
-# app.py -> app = Flask(__name__)
-# Gunicorn target: app:app
-GUNICORN_APP = "app:app"
+APP_PROGRAM_DIR = "app_program"
+AI_PROGRAM_DIR = "ai_program"
 
 GUNICORN_HOST = "0.0.0.0"
 GUNICORN_PORT = "8000"
 GUNICORN_WORKERS = "3"
+
+AI_SERVICE_HOST = "127.0.0.1"
+AI_SERVICE_PORT = "8001"
+AI_SERVICE_WORKERS = "1"
 
 MARIADB_PORT_FILE = "/tmp/henokh_mariadb_port"
 
@@ -284,7 +286,10 @@ def is_project_ready():
     script = f"""
 test -d "$HOME/{PROJECT_FOLDER}"
 test -d "$HOME/{PROJECT_FOLDER}/.git"
-test -f "$HOME/{PROJECT_FOLDER}/requirements.txt"
+test -f "$HOME/{PROJECT_FOLDER}/{APP_PROGRAM_DIR}/app.py"
+test -f "$HOME/{PROJECT_FOLDER}/{APP_PROGRAM_DIR}/requirements.txt"
+test -f "$HOME/{PROJECT_FOLDER}/{AI_PROGRAM_DIR}/app.py"
+test -f "$HOME/{PROJECT_FOLDER}/{AI_PROGRAM_DIR}/requirements.txt"
 test -x "$HOME/{PROJECT_FOLDER}/{VENV_NAME}/bin/python"
 test -x "$HOME/{PROJECT_FOLDER}/{VENV_NAME}/bin/gunicorn"
 test -f "$HOME/{PROJECT_FOLDER}/.env"
@@ -546,6 +551,8 @@ def setup_project(clean_project=False):
 set -e
 
 PROJECT_FOLDER="{PROJECT_FOLDER}"
+APP_PROGRAM_DIR="{APP_PROGRAM_DIR}"
+AI_PROGRAM_DIR="{AI_PROGRAM_DIR}"
 GIT_REPO_URL="{GIT_REPO_URL}"
 AUTO_GIT_PULL="{1 if AUTO_GIT_PULL else 0}"
 MOBILEFACENET_REPO_URL="{MOBILEFACENET_REPO_URL}"
@@ -613,6 +620,8 @@ if [ ! -x "$PYTHON_BIN" ]; then
 fi
 
 "$PYTHON_BIN" --version
+VENV_PYTHON="$PWD/$VENV_NAME/bin/python"
+VENV_PIP="$PWD/$VENV_NAME/bin/pip"
 
 echo "Checking virtual environment..."
 if [ ! -x "$VENV_NAME/bin/python" ]; then
@@ -623,29 +632,37 @@ else
 fi
 
 echo "Upgrading pip..."
-"$VENV_NAME/bin/python" -m pip install --progress-bar on --upgrade pip setuptools wheel
+"$VENV_PYTHON" -m pip install --progress-bar on --upgrade pip setuptools wheel
 
-if [ -f "requirements.txt" ]; then
-    echo "Installing/updating requirements..."
-    "$VENV_NAME/bin/pip" install --progress-bar on -r requirements.txt
+if [ -f "$APP_PROGRAM_DIR/requirements.txt" ]; then
+    echo "Installing/updating backend requirements..."
+    "$VENV_PIP" install --progress-bar on -r "$APP_PROGRAM_DIR/requirements.txt"
 else
-    echo "ERROR: requirements.txt not found."
+    echo "ERROR: $APP_PROGRAM_DIR/requirements.txt not found."
+    exit 1
+fi
+
+if [ -f "$AI_PROGRAM_DIR/requirements.txt" ]; then
+    echo "Installing/updating AI service requirements..."
+    "$VENV_PIP" install --progress-bar on -r "$AI_PROGRAM_DIR/requirements.txt"
+else
+    echo "ERROR: $AI_PROGRAM_DIR/requirements.txt not found."
     exit 1
 fi
 
 echo "Repairing typing_extensions if needed..."
-"$VENV_NAME/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
+"$VENV_PIP" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
 
 echo "Repairing CPU Torch stack if needed..."
-"$VENV_NAME/bin/pip" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
+"$VENV_PIP" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
 
 echo "Repairing TensorFlow/Keras if needed..."
-"$VENV_NAME/bin/pip" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
+"$VENV_PIP" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
 
 echo "Checking Gunicorn..."
-if ! "$VENV_NAME/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
+if ! "$VENV_PYTHON" -m pip show gunicorn > /dev/null 2>&1; then
     echo "Installing Gunicorn..."
-    "$VENV_NAME/bin/pip" install --progress-bar on gunicorn
+    "$VENV_PIP" install --progress-bar on gunicorn
 else
     echo "Gunicorn already installed."
 fi
@@ -680,10 +697,11 @@ set_env_value "DB_PORT" "$MARIADB_PORT"
 set_env_value "DB_NAME" "{DB_NAME}"
 set_env_value "DB_USER" "{DB_USER}"
 set_env_value "DB_PASSWORD" "{DB_PASSWORD}"
-set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
+set_env_value "AI_SERVICE_URL" "http://{AI_SERVICE_HOST}:{AI_SERVICE_PORT}"
+set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/$AI_PROGRAM_DIR/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
 
 echo ".env database values:"
-grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD|MOBILEFACENET_MODEL_PATH)=" "$ENV_FILE" || true
+grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD|AI_SERVICE_URL|MOBILEFACENET_MODEL_PATH)=" "$ENV_FILE" || true
 
 echo "Loading .env..."
 set -a
@@ -695,22 +713,22 @@ if [ -f "$MOBILEFACENET_MODEL_PATH" ]; then
     echo "MobileFaceNet model found: $MOBILEFACENET_MODEL_PATH"
 else
     echo "Cloning foamliu/MobileFaceNet..."
-    mkdir -p "model"
+    mkdir -p "$AI_PROGRAM_DIR/model"
 
-    if [ -d "model/MobileFaceNet" ]; then
-        BACKUP_NAME="model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
+    if [ -d "$AI_PROGRAM_DIR/model/MobileFaceNet" ]; then
+        BACKUP_NAME="$AI_PROGRAM_DIR/model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
         echo "Moving incomplete MobileFaceNet folder to: $BACKUP_NAME"
-        mv "model/MobileFaceNet" "$BACKUP_NAME"
+        mv "$AI_PROGRAM_DIR/model/MobileFaceNet" "$BACKUP_NAME"
     fi
 
-    git clone "$MOBILEFACENET_REPO_URL" "model/MobileFaceNet"
+    git clone "$MOBILEFACENET_REPO_URL" "$AI_PROGRAM_DIR/model/MobileFaceNet"
 fi
 
 echo "Running database migrations..."
-"$VENV_NAME/bin/python" -m flask --app app migrate-db
+(cd "$APP_PROGRAM_DIR" && "$VENV_PYTHON" -m flask --app app migrate-db)
 
 echo "Seeding default admin user..."
-"$VENV_NAME/bin/python" -m flask --app app seed-admin
+(cd "$APP_PROGRAM_DIR" && "$VENV_PYTHON" -m flask --app app seed-admin)
 
 echo "Project setup complete."
 """
@@ -828,6 +846,10 @@ set -e
 cd "$HOME/{PROJECT_FOLDER}"
 
 echo "Current folder: $(pwd)"
+APP_PROGRAM_DIR="{APP_PROGRAM_DIR}"
+AI_PROGRAM_DIR="{AI_PROGRAM_DIR}"
+VENV_PYTHON="$PWD/{VENV_NAME}/bin/python"
+VENV_PIP="$PWD/{VENV_NAME}/bin/pip"
 
 if [ ! -d ".git" ]; then
     echo "ERROR: This folder is not a Git repository."
@@ -861,7 +883,8 @@ set_env_value "DB_PORT" "$MARIADB_PORT"
 set_env_value "DB_NAME" "{DB_NAME}"
 set_env_value "DB_USER" "{DB_USER}"
 set_env_value "DB_PASSWORD" "{DB_PASSWORD}"
-set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
+set_env_value "AI_SERVICE_URL" "http://{AI_SERVICE_HOST}:{AI_SERVICE_PORT}"
+set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/$AI_PROGRAM_DIR/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
 
 echo "Saving local changes temporarily..."
 git stash push -u -m "auto-stash-before-manual-pull" || true
@@ -869,21 +892,24 @@ git stash push -u -m "auto-stash-before-manual-pull" || true
 echo "Pulling latest changes..."
 git pull
 
-echo "Installing/updating requirements..."
-"{VENV_NAME}/bin/pip" install --progress-bar on -r requirements.txt
+echo "Installing/updating backend requirements..."
+"$VENV_PIP" install --progress-bar on -r "$APP_PROGRAM_DIR/requirements.txt"
+
+echo "Installing/updating AI service requirements..."
+"$VENV_PIP" install --progress-bar on -r "$AI_PROGRAM_DIR/requirements.txt"
 
 echo "Repairing typing_extensions if needed..."
-"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
+"$VENV_PIP" install --progress-bar on --force-reinstall "typing_extensions>=4.15.0"
 
 echo "Repairing CPU Torch stack if needed..."
-"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
+"$VENV_PIP" install --progress-bar on --force-reinstall --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" "torchvision==0.20.1+cpu"
 
 echo "Repairing TensorFlow/Keras if needed..."
-"{VENV_NAME}/bin/pip" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
+"$VENV_PIP" install --progress-bar on --force-reinstall "tensorflow==2.21.0" "keras>=3.12.0"
 
 echo "Checking Gunicorn..."
-if ! "{VENV_NAME}/bin/python" -m pip show gunicorn > /dev/null 2>&1; then
-    "{VENV_NAME}/bin/pip" install --progress-bar on gunicorn
+if ! "$VENV_PYTHON" -m pip show gunicorn > /dev/null 2>&1; then
+    "$VENV_PIP" install --progress-bar on gunicorn
 fi
 
 echo "Loading .env..."
@@ -896,23 +922,23 @@ if [ -f "$MOBILEFACENET_MODEL_PATH" ]; then
     echo "MobileFaceNet model found: $MOBILEFACENET_MODEL_PATH"
 else
     echo "Cloning foamliu/MobileFaceNet..."
-    mkdir -p "model"
+    mkdir -p "$AI_PROGRAM_DIR/model"
 
-    if [ -d "model/MobileFaceNet" ]; then
-        BACKUP_NAME="model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
+    if [ -d "$AI_PROGRAM_DIR/model/MobileFaceNet" ]; then
+        BACKUP_NAME="$AI_PROGRAM_DIR/model/MobileFaceNet_backup_$(date +%Y%m%d_%H%M%S)"
         echo "Moving incomplete MobileFaceNet folder to: $BACKUP_NAME"
-        mv "model/MobileFaceNet" "$BACKUP_NAME"
+        mv "$AI_PROGRAM_DIR/model/MobileFaceNet" "$BACKUP_NAME"
     fi
 
-    git clone "{MOBILEFACENET_REPO_URL}" "model/MobileFaceNet"
+    git clone "{MOBILEFACENET_REPO_URL}" "$AI_PROGRAM_DIR/model/MobileFaceNet"
 fi
 
 echo "Running database migrations..."
-"{VENV_NAME}/bin/python" -m flask --app app migrate-db
+(cd "$APP_PROGRAM_DIR" && "$VENV_PYTHON" -m flask --app app migrate-db)
 echo "Database migrations finished."
 
 echo "Seeding default admin user..."
-"{VENV_NAME}/bin/python" -m flask --app app seed-admin
+(cd "$APP_PROGRAM_DIR" && "$VENV_PYTHON" -m flask --app app seed-admin)
 echo "Default admin user check finished."
 
 echo "Project pull/update complete."
@@ -922,20 +948,21 @@ echo "Project pull/update complete."
 
 
 def kill_app_port_for_run():
-    log(f"Checking app port {GUNICORN_PORT} before starting program...")
+    log(f"Checking service ports {GUNICORN_PORT} and {AI_SERVICE_PORT} before starting program...")
 
     script = f"""
 set -e
 
-APP_PORT="{GUNICORN_PORT}"
+SERVICE_PORTS="{GUNICORN_PORT} {AI_SERVICE_PORT}"
 
+for APP_PORT in $SERVICE_PORTS; do
 echo "Checking for processes listening on port $APP_PORT..."
 
 PIDS="$(ss -ltnp "sport = :$APP_PORT" 2>/dev/null | sed -n 's/.*pid=\\([0-9]\\+\\).*/\\1/p' | sort -u || true)"
 
 if [ -z "$PIDS" ]; then
     echo "No process is using port $APP_PORT."
-    exit 0
+    continue
 fi
 
 echo "Stopping process(es) on port $APP_PORT: $PIDS"
@@ -959,6 +986,7 @@ if [ -n "$REMAINING" ]; then
 fi
 
 echo "Port $APP_PORT is ready."
+done
 """
 
     run_wsl_script(script, user="root")
@@ -992,6 +1020,10 @@ set -e
 cd "$HOME/{PROJECT_FOLDER}"
 
 echo "Current folder: $(pwd)"
+APP_PROGRAM_DIR="{APP_PROGRAM_DIR}"
+AI_PROGRAM_DIR="{AI_PROGRAM_DIR}"
+VENV_PYTHON="$PWD/{VENV_NAME}/bin/python"
+GUNICORN_BIN="$PWD/{VENV_NAME}/bin/gunicorn"
 
 if [ ! -d ".git" ]; then
     echo "ERROR: This folder is not a Git repository."
@@ -1025,31 +1057,61 @@ set_env_value "DB_PORT" "$MARIADB_PORT"
 set_env_value "DB_NAME" "{DB_NAME}"
 set_env_value "DB_USER" "{DB_USER}"
 set_env_value "DB_PASSWORD" "{DB_PASSWORD}"
-set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
+set_env_value "AI_SERVICE_URL" "http://{AI_SERVICE_HOST}:{AI_SERVICE_PORT}"
+set_env_value "MOBILEFACENET_MODEL_PATH" "$PWD/$AI_PROGRAM_DIR/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt"
 
 echo "Database environment:"
-grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD|MOBILEFACENET_MODEL_PATH)=" "$ENV_FILE" || true
+grep -E "^(MARIADB_HOST|MARIADB_PORT|DB_HOST|DB_PORT|DB_NAME|DB_USER|DB_PASSWORD|AI_SERVICE_URL|MOBILEFACENET_MODEL_PATH)=" "$ENV_FILE" || true
 
 echo "Loading .env..."
 set -a
 . "$ENV_FILE"
 set +a
 
+echo "Running database migrations..."
+(cd "$APP_PROGRAM_DIR" && "$VENV_PYTHON" -m flask --app app migrate-db)
+echo "Database migrations finished."
+
 echo
 echo "========================================"
-echo "Starting Henokh Presence app..."
-echo "Open this URL in your browser:"
+echo "Starting Henokh Presence services..."
+echo "Backend app URL:"
 echo "http://localhost:{GUNICORN_PORT}"
+echo "AI service URL:"
+echo "http://localhost:{AI_SERVICE_PORT}"
 echo "========================================"
 echo "MariaDB Host: $DB_HOST"
 echo "MariaDB Port: $DB_PORT"
 echo "Database Name: $DB_NAME"
 echo
 
-exec "{VENV_NAME}/bin/gunicorn" \\
+cleanup_services() {{
+    if [ -n "${{AI_PID:-}}" ]; then
+        kill "$AI_PID" 2>/dev/null || true
+    fi
+}}
+
+trap cleanup_services EXIT INT TERM
+
+echo "Starting AI service..."
+(cd "$AI_PROGRAM_DIR" && "$GUNICORN_BIN" \\
+    --workers "{AI_SERVICE_WORKERS}" \\
+    --bind "{AI_SERVICE_HOST}:{AI_SERVICE_PORT}" \\
+    "app:app") &
+AI_PID="$!"
+
+sleep 3
+
+if ! kill -0 "$AI_PID" 2>/dev/null; then
+    echo "ERROR: AI service failed to start."
+    exit 1
+fi
+
+echo "Starting backend app..."
+(cd "$APP_PROGRAM_DIR" && "$GUNICORN_BIN" \\
     --workers "{GUNICORN_WORKERS}" \\
     --bind "{GUNICORN_HOST}:{GUNICORN_PORT}" \\
-    "{GUNICORN_APP}"
+    "app:app")
 """
 
     run_wsl_script(script)

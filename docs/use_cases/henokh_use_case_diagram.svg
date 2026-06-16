@@ -1,160 +1,634 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-label="Henokh project use case diagram">
-  <style>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1600"
+   height="1120"
+   viewBox="0 0 1600 1120"
+   role="img"
+   aria-label="Henokh project use case diagram"
+   version="1.1"
+   id="svg67"
+   sodipodi:docname="henokh_use_case_diagram.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs67" />
+  <sodipodi:namedview
+     id="namedview67"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.62402173"
+     inkscape:cx="681.06602"
+     inkscape:cy="561.67915"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="1911"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg67" />
+  <style
+     id="style1">
     .bg{fill:#f8fafc}.boundary{fill:#fff;stroke:#263247;stroke-width:2.5}.group{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.6}.actor{stroke:#263247;stroke-width:2.5;fill:none;stroke-linecap:round}.case{fill:#eff6ff;stroke:#2563eb;stroke-width:2}.case2{fill:#ecfdf5;stroke:#0f766e;stroke-width:2}.case3{fill:#fff7ed;stroke:#ea580c;stroke-width:2}.case4{fill:#fef2f2;stroke:#dc2626;stroke-width:2}.line{stroke:#475569;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}.dash{stroke:#64748b;stroke-width:1.8;stroke-dasharray:7 6;fill:none;stroke-linecap:round}.title{font:700 24px Arial,sans-serif;fill:#111827}.groupTitle{font:700 16px Arial,sans-serif;fill:#334155}.txt{font:15px Arial,sans-serif;fill:#263247}.small{font:13px Arial,sans-serif;fill:#475569}.label{font:12px Arial,sans-serif;fill:#64748b}
   </style>
-
-  <rect class="bg" width="1600" height="1120"/>
-
+  <rect
+     class="bg"
+     width="1600"
+     height="1120"
+     id="rect1" />
   <!-- System boundary -->
-  <rect class="boundary" x="260" y="50" width="1080" height="1015" rx="18"/>
-  <text class="title" x="800" y="92" text-anchor="middle">Henokh Presence System</text>
-
+  <rect
+     class="boundary"
+     x="260"
+     y="50"
+     width="1080"
+     height="1015"
+     rx="18"
+     id="rect2" />
+  <text
+     class="title"
+     x="800"
+     y="92"
+     text-anchor="middle"
+     id="text2">Henokh Presence System</text>
   <!-- Actors -->
-  <g id="admin" transform="translate(72 240)">
-    <circle class="actor" cx="54" cy="28" r="24"/>
-    <line class="actor" x1="54" y1="52" x2="54" y2="120"/>
-    <line class="actor" x1="12" y1="78" x2="96" y2="78"/>
-    <line class="actor" x1="54" y1="120" x2="18" y2="176"/>
-    <line class="actor" x1="54" y1="120" x2="90" y2="176"/>
-    <text class="txt" x="54" y="214" text-anchor="middle">Admin / Operator</text>
+  <g
+     id="admin"
+     transform="translate(72 240)">
+    <circle
+       class="actor"
+       cx="54"
+       cy="28"
+       r="24"
+       id="circle2" />
+    <line
+       class="actor"
+       x1="54"
+       y1="52"
+       x2="54"
+       y2="120"
+       id="line2" />
+    <line
+       class="actor"
+       x1="12"
+       y1="78"
+       x2="96"
+       y2="78"
+       id="line3" />
+    <line
+       class="actor"
+       x1="54"
+       y1="120"
+       x2="18"
+       y2="176"
+       id="line4" />
+    <line
+       class="actor"
+       x1="54"
+       y1="120"
+       x2="90"
+       y2="176"
+       id="line5" />
+    <text
+       class="txt"
+       x="54"
+       y="214"
+       text-anchor="middle"
+       id="text5">Admin / Operator</text>
   </g>
-
-  <g id="presence-operator" transform="translate(1430 330)">
-    <circle class="actor" cx="54" cy="28" r="24"/>
-    <line class="actor" x1="54" y1="52" x2="54" y2="120"/>
-    <line class="actor" x1="12" y1="78" x2="96" y2="78"/>
-    <line class="actor" x1="54" y1="120" x2="18" y2="176"/>
-    <line class="actor" x1="54" y1="120" x2="90" y2="176"/>
-    <text class="txt" x="54" y="214" text-anchor="middle">Presence Operator</text>
+  <g
+     id="presence-operator"
+     transform="translate(1430 330)">
+    <circle
+       class="actor"
+       cx="54"
+       cy="28"
+       r="24"
+       id="circle5" />
+    <line
+       class="actor"
+       x1="54"
+       y1="52"
+       x2="54"
+       y2="120"
+       id="line6" />
+    <line
+       class="actor"
+       x1="12"
+       y1="78"
+       x2="96"
+       y2="78"
+       id="line7" />
+    <line
+       class="actor"
+       x1="54"
+       y1="120"
+       x2="18"
+       y2="176"
+       id="line8" />
+    <line
+       class="actor"
+       x1="54"
+       y1="120"
+       x2="90"
+       y2="176"
+       id="line9" />
+    <text
+       class="txt"
+       x="54"
+       y="214"
+       text-anchor="middle"
+       id="text9">Presence Operator</text>
   </g>
-
-  <g id="camera" transform="translate(1438 660)">
-    <rect x="0" y="25" width="95" height="70" rx="10" fill="#fff" stroke="#263247" stroke-width="2.5"/>
-    <circle cx="48" cy="60" r="22" fill="none" stroke="#263247" stroke-width="2.5"/>
-    <rect x="15" y="0" width="55" height="25" rx="6" fill="#fff" stroke="#263247" stroke-width="2.5"/>
-    <text class="txt" x="48" y="135" text-anchor="middle">Camera</text>
-  </g>
-
   <!-- Group panels -->
-  <rect class="group" x="320" y="130" width="285" height="235" rx="12"/>
-  <text class="groupTitle" x="345" y="162">Authentication</text>
-
-  <rect class="group" x="320" y="405" width="285" height="565" rx="12"/>
-  <text class="groupTitle" x="345" y="437">Administration</text>
-
-  <rect class="group" x="660" y="130" width="285" height="475" rx="12"/>
-  <text class="groupTitle" x="685" y="162">Master Data</text>
-
-  <rect class="group" x="1000" y="130" width="285" height="475" rx="12"/>
-  <text class="groupTitle" x="1025" y="162">Presence</text>
-
-  <rect class="group" x="660" y="655" width="625" height="315" rx="12"/>
-  <text class="groupTitle" x="685" y="687">Attendance and Archive</text>
-
+  <rect
+     class="group"
+     x="320"
+     y="130"
+     width="285"
+     height="235"
+     rx="12"
+     id="rect11" />
+  <text
+     class="groupTitle"
+     x="345"
+     y="162"
+     id="text11">Authentication</text>
+  <rect
+     class="group"
+     x="320"
+     y="405"
+     width="285"
+     height="565"
+     rx="12"
+     id="rect12" />
+  <text
+     class="groupTitle"
+     x="345"
+     y="437"
+     id="text12">Administration</text>
+  <rect
+     class="group"
+     x="660"
+     y="130"
+     width="285"
+     height="475"
+     rx="12"
+     id="rect13" />
+  <text
+     class="groupTitle"
+     x="685"
+     y="162"
+     id="text13">Master Data</text>
+  <rect
+     class="group"
+     x="1000.0303"
+     y="111.60148"
+     width="284.93936"
+     height="511.79706"
+     rx="11.997447"
+     id="rect14" />
+  <text
+     class="groupTitle"
+     x="1025"
+     y="162"
+     id="text14">Presence</text>
+  <rect
+     class="group"
+     x="660"
+     y="655"
+     width="625"
+     height="315"
+     rx="12"
+     id="rect15" />
+  <text
+     class="groupTitle"
+     x="685"
+     y="687"
+     id="text15">Attendance and Archive</text>
   <!-- Authentication cases -->
-  <ellipse class="case" cx="462" cy="220" rx="112" ry="38"/>
-  <text class="txt" x="462" y="225" text-anchor="middle">Login</text>
-  <ellipse class="case" cx="462" cy="305" rx="112" ry="38"/>
-  <text class="txt" x="462" y="310" text-anchor="middle">Logout</text>
-
+  <ellipse
+     class="case"
+     cx="462"
+     cy="220"
+     rx="112"
+     ry="38"
+     id="ellipse15" />
+  <text
+     class="txt"
+     x="462"
+     y="225"
+     text-anchor="middle"
+     id="text16">Login</text>
+  <ellipse
+     class="case"
+     cx="462"
+     cy="305"
+     rx="112"
+     ry="38"
+     id="ellipse16" />
+  <text
+     class="txt"
+     x="462"
+     y="310"
+     text-anchor="middle"
+     id="text17">Logout</text>
   <!-- Admin cases -->
-  <ellipse class="case" cx="462" cy="505" rx="125" ry="40"/>
-  <text class="txt" x="462" y="500" text-anchor="middle">View Dashboard</text>
-  <text class="small" x="462" y="520" text-anchor="middle">overview, search, pagination</text>
-
-  <ellipse class="case4" cx="462" cy="615" rx="125" ry="40"/>
-  <text class="txt" x="462" y="610" text-anchor="middle">Manage Users</text>
-  <text class="small" x="462" y="630" text-anchor="middle">create, delete</text>
-
-  <ellipse class="case4" cx="462" cy="725" rx="125" ry="40"/>
-  <text class="txt" x="462" y="720" text-anchor="middle">Configure Anti-spoof</text>
-  <text class="small" x="462" y="740" text-anchor="middle">enable or disable</text>
-
-  <ellipse class="case4" cx="462" cy="835" rx="125" ry="40"/>
-  <text class="txt" x="462" y="830" text-anchor="middle">Cleanup Archived Data</text>
-  <text class="small" x="462" y="850" text-anchor="middle">permanent delete</text>
-
+  <ellipse
+     class="case"
+     cx="462"
+     cy="505"
+     rx="125"
+     ry="40"
+     id="ellipse17" />
+  <text
+     class="txt"
+     x="462"
+     y="500"
+     text-anchor="middle"
+     id="text18">View Dashboard</text>
+  <text
+     class="small"
+     x="462"
+     y="520"
+     text-anchor="middle"
+     id="text19">overview, search, pagination</text>
+  <ellipse
+     class="case4"
+     cx="462"
+     cy="615"
+     rx="125"
+     ry="40"
+     id="ellipse19" />
+  <text
+     class="txt"
+     x="462"
+     y="610"
+     text-anchor="middle"
+     id="text20">Manage Users</text>
+  <text
+     class="small"
+     x="462"
+     y="630"
+     text-anchor="middle"
+     id="text21">create, delete</text>
+  <ellipse
+     class="case4"
+     cx="462"
+     cy="725"
+     rx="125"
+     ry="40"
+     id="ellipse21" />
+  <text
+     class="txt"
+     x="462"
+     y="720"
+     text-anchor="middle"
+     id="text22">Configure Anti-spoof</text>
+  <text
+     class="small"
+     x="462"
+     y="740"
+     text-anchor="middle"
+     id="text23">enable or disable</text>
+  <ellipse
+     class="case4"
+     cx="462"
+     cy="835"
+     rx="125"
+     ry="40"
+     id="ellipse23" />
+  <text
+     class="txt"
+     x="462"
+     y="830"
+     text-anchor="middle"
+     id="text24">Cleanup Archived Data</text>
+  <text
+     class="small"
+     x="462"
+     y="850"
+     text-anchor="middle"
+     id="text25">permanent delete</text>
   <!-- Master data cases -->
-  <ellipse class="case2" cx="802" cy="230" rx="130" ry="42"/>
-  <text class="txt" x="802" y="225" text-anchor="middle">Manage Students</text>
-  <text class="small" x="802" y="246" text-anchor="middle">add, edit, archive</text>
-
-  <ellipse class="case2" cx="802" cy="345" rx="130" ry="42"/>
-  <text class="txt" x="802" y="340" text-anchor="middle">Capture Student Face</text>
-  <text class="small" x="802" y="361" text-anchor="middle">save embedding</text>
-
-  <ellipse class="case2" cx="802" cy="460" rx="130" ry="42"/>
-  <text class="txt" x="802" y="455" text-anchor="middle">Manage Teachers</text>
-  <text class="small" x="802" y="476" text-anchor="middle">add, edit, archive</text>
-
-  <ellipse class="case2" cx="802" cy="550" rx="130" ry="42"/>
-  <text class="txt" x="802" y="545" text-anchor="middle">Manage Classes</text>
-  <text class="small" x="802" y="566" text-anchor="middle">teacher, schedule, students</text>
-
+  <ellipse
+     class="case2"
+     cx="802"
+     cy="230"
+     rx="130"
+     ry="42"
+     id="ellipse25" />
+  <text
+     class="txt"
+     x="802"
+     y="225"
+     text-anchor="middle"
+     id="text26">Manage Students</text>
+  <text
+     class="small"
+     x="802"
+     y="246"
+     text-anchor="middle"
+     id="text27">add, edit, archive</text>
+  <ellipse
+     class="case2"
+     cx="802"
+     cy="345"
+     rx="130"
+     ry="42"
+     id="ellipse27" />
+  <text
+     class="txt"
+     x="802"
+     y="340"
+     text-anchor="middle"
+     id="text28">Capture Student Face</text>
+  <text
+     class="small"
+     x="802"
+     y="361"
+     text-anchor="middle"
+     id="text29">save embedding</text>
+  <ellipse
+     class="case2"
+     cx="802"
+     cy="460"
+     rx="130"
+     ry="42"
+     id="ellipse29" />
+  <text
+     class="txt"
+     x="802"
+     y="455"
+     text-anchor="middle"
+     id="text30">Manage Teachers</text>
+  <text
+     class="small"
+     x="802"
+     y="476"
+     text-anchor="middle"
+     id="text31">add, edit, archive</text>
+  <ellipse
+     class="case2"
+     cx="802"
+     cy="550"
+     rx="130"
+     ry="42"
+     id="ellipse31" />
+  <text
+     class="txt"
+     x="802"
+     y="545"
+     text-anchor="middle"
+     id="text32">Manage Classes</text>
+  <text
+     class="small"
+     x="802"
+     y="566"
+     text-anchor="middle"
+     id="text33">teacher, schedule, students</text>
   <!-- Presence cases -->
-  <ellipse class="case3" cx="1142" cy="230" rx="132" ry="42"/>
-  <text class="txt" x="1142" y="225" text-anchor="middle">Run Presence Camera</text>
-  <text class="small" x="1142" y="246" text-anchor="middle">start / stop camera</text>
-
-  <ellipse class="case3" cx="1142" cy="345" rx="132" ry="42"/>
-  <text class="txt" x="1142" y="340" text-anchor="middle">Detect Face</text>
-  <text class="small" x="1142" y="361" text-anchor="middle">anti-spoof optional</text>
-
-  <ellipse class="case3" cx="1142" cy="460" rx="132" ry="42"/>
-  <text class="txt" x="1142" y="455" text-anchor="middle">Recognize Student</text>
-  <text class="small" x="1142" y="476" text-anchor="middle">match embedding</text>
-
-  <ellipse class="case3" cx="1142" cy="550" rx="132" ry="42"/>
-  <text class="txt" x="1142" y="545" text-anchor="middle">Record Attendance</text>
-  <text class="small" x="1142" y="566" text-anchor="middle">presence, late, absent</text>
-
+  <ellipse
+     class="case3"
+     cx="1142"
+     cy="230"
+     rx="132"
+     ry="42"
+     id="ellipse33" />
+  <text
+     class="txt"
+     x="1142"
+     y="225"
+     text-anchor="middle"
+     id="text34">Run Presence Camera</text>
+  <text
+     class="small"
+     x="1142"
+     y="246"
+     text-anchor="middle"
+     id="text35">start / stop camera</text>
+  <ellipse
+     class="case3"
+     cx="1142"
+     cy="345"
+     rx="132"
+     ry="42"
+     id="ellipse35" />
+  <text
+     class="txt"
+     x="1142"
+     y="340"
+     text-anchor="middle"
+     id="text36">Detect Face</text>
+  <text
+     class="small"
+     x="1142"
+     y="361"
+     text-anchor="middle"
+     id="text37">anti-spoof optional</text>
+  <ellipse
+     class="case3"
+     cx="1142"
+     cy="460"
+     rx="132"
+     ry="42"
+     id="ellipse37" />
+  <text
+     class="txt"
+     x="1142"
+     y="455"
+     text-anchor="middle"
+     id="text38">Recognize Student</text>
+  <text
+     class="small"
+     x="1142"
+     y="476"
+     text-anchor="middle"
+     id="text39">match embedding</text>
+  <ellipse
+     class="case3"
+     cx="1140.7191"
+     cy="565.22382"
+     rx="132"
+     ry="42"
+     id="ellipse39" />
+  <text
+     class="txt"
+     x="1140.7191"
+     y="560.22382"
+     text-anchor="middle"
+     id="text40"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:15px;line-height:normal;font-family:Arial, sans-serif">Record Attendance</text>
+  <text
+     class="small"
+     x="1140.7191"
+     y="581.22382"
+     text-anchor="middle"
+     id="text41"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13px;line-height:normal;font-family:Arial, sans-serif">presence, late, absent</text>
   <!-- Attendance / archive cases -->
-  <ellipse class="case3" cx="802" cy="770" rx="130" ry="42"/>
-  <text class="txt" x="802" y="765" text-anchor="middle">Review Calendar</text>
-  <text class="small" x="802" y="786" text-anchor="middle">monthly summaries</text>
-
-  <ellipse class="case3" cx="802" cy="885" rx="130" ry="42"/>
-  <text class="txt" x="802" y="880" text-anchor="middle">Manage Detail</text>
-  <text class="small" x="802" y="901" text-anchor="middle">update or remove record</text>
-
-  <ellipse class="case4" cx="1112" cy="770" rx="135" ry="42"/>
-  <text class="txt" x="1112" y="765" text-anchor="middle">Restore Archived Data</text>
-  <text class="small" x="1112" y="786" text-anchor="middle">students, teachers, classes</text>
-
+  <ellipse
+     class="case3"
+     cx="802"
+     cy="770"
+     rx="130"
+     ry="42"
+     id="ellipse41" />
+  <text
+     class="txt"
+     x="802"
+     y="765"
+     text-anchor="middle"
+     id="text42">Review Calendar</text>
+  <text
+     class="small"
+     x="802"
+     y="786"
+     text-anchor="middle"
+     id="text43">monthly summaries</text>
+  <ellipse
+     class="case3"
+     cx="802"
+     cy="885"
+     rx="130"
+     ry="42"
+     id="ellipse43" />
+  <text
+     class="txt"
+     x="802"
+     y="880"
+     text-anchor="middle"
+     id="text44">Manage Detail</text>
+  <text
+     class="small"
+     x="802"
+     y="901"
+     text-anchor="middle"
+     id="text45">update or remove record</text>
+  <ellipse
+     class="case4"
+     cx="1112"
+     cy="770"
+     rx="135"
+     ry="42"
+     id="ellipse45" />
+  <text
+     class="txt"
+     x="1112"
+     y="765"
+     text-anchor="middle"
+     id="text46">Restore Archived Data</text>
+  <text
+     class="small"
+     x="1112"
+     y="786"
+     text-anchor="middle"
+     id="text47">students, teachers, classes</text>
   <!-- Actor association lanes -->
-  <path class="line" d="M168 330 H280 V220 H350"/>
-  <path class="line" d="M168 340 H285 V305 H350"/>
-  <path class="line" d="M168 350 H290 V505 H337"/>
-  <path class="line" d="M168 360 H295 V615 H337"/>
-  <path class="line" d="M168 370 H300 V725 H337"/>
-  <path class="line" d="M168 380 H305 V835 H337"/>
-
-  <path class="line" d="M168 390 H630 V230 H672"/>
-  <path class="line" d="M168 400 H625 V460 H672"/>
-  <path class="line" d="M168 410 H620 V550 H672"/>
-  <path class="line" d="M168 420 H630 V770 H672"/>
-  <path class="line" d="M168 430 H625 V885 H672"/>
-  <path class="line" d="M168 440 H960 V770 H977"/>
-
+  <path
+     class="line"
+     d="M168 330 H280 V220 H350"
+     id="path47" />
+  <path
+     class="line"
+     d="M168 340 H285 V305 H350"
+     id="path48" />
+  <path
+     class="line"
+     d="M168 350 H290 V505 H337"
+     id="path49" />
+  <path
+     class="line"
+     d="M168 360 H295 V615 H337"
+     id="path50" />
+  <path
+     class="line"
+     d="M168 370 H300 V725 H337"
+     id="path51" />
+  <path
+     class="line"
+     d="M168 380 H305 V835 H337"
+     id="path52" />
+  <path
+     class="line"
+     d="M168 390 H630 V230 H672"
+     id="path53" />
+  <path
+     class="line"
+     d="M168 400 H625 V460 H672"
+     id="path54" />
+  <path
+     class="line"
+     d="M168 410 H620 V550 H672"
+     id="path55" />
+  <path
+     class="line"
+     d="M168 420 H630 V770 H672"
+     id="path56" />
+  <path
+     class="line"
+     d="M168 430 H625 V885 H672"
+     id="path57" />
+  <path
+     class="line"
+     d="M168 440 H960 V770 H977"
+     id="path58" />
   <!-- Presence operator and camera lanes -->
-  <path class="line" d="M1430 445 H1320 V230 H1274"/>
-  <path class="line" d="M1430 455 H1315 V550 H1274"/>
-  <path class="line" d="M1438 720 H1320 V345 H1274"/>
-  <path class="line" d="M1438 730 H1315 V460 H1274"/>
-
+  <path
+     class="line"
+     d="M1430 445 H1320 V230 H1274"
+     id="path59" />
   <!-- Include / extend relationships, kept inside boundary -->
-  <path class="dash" d="M802 272 V303"/>
-  <text class="label" x="815" y="292">&lt;&lt;include&gt;&gt;</text>
-
-  <path class="dash" d="M1142 272 V303"/>
-  <text class="label" x="1155" y="292">&lt;&lt;include&gt;&gt;</text>
-
-  <path class="dash" d="M1142 387 V418"/>
-  <text class="label" x="1155" y="407">&lt;&lt;include&gt;&gt;</text>
-
-  <path class="dash" d="M1142 502 V508"/>
-  <text class="label" x="1155" y="522">&lt;&lt;include&gt;&gt;</text>
-
-  <path class="dash" d="M802 812 V843"/>
-  <text class="label" x="815" y="832">&lt;&lt;extend&gt;&gt;</text>
+  <path
+     class="dash"
+     d="M802 272 V303"
+     id="path63" />
+  <text
+     class="label"
+     x="815"
+     y="292"
+     id="text63">&lt;&lt;include&gt;&gt;</text>
+  <path
+     class="dash"
+     d="M1142 272 V303"
+     id="path64" />
+  <text
+     class="label"
+     x="1155"
+     y="292"
+     id="text64">&lt;&lt;include&gt;&gt;</text>
+  <path
+     class="dash"
+     d="M1142 387 V418"
+     id="path65" />
+  <text
+     class="label"
+     x="1155"
+     y="407"
+     id="text65">&lt;&lt;include&gt;&gt;</text>
+  <path
+     class="dash"
+     d="m 1142,503.52776 v 16.1851"
+     id="path66" />
+  <text
+     class="label"
+     x="1161.1799"
+     y="516.83655"
+     id="text66"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;line-height:normal;font-family:Arial, sans-serif">&lt;&lt;include&gt;&gt;</text>
+  <path
+     class="dash"
+     d="M802 812 V843"
+     id="path67" />
+  <text
+     class="label"
+     x="815"
+     y="832"
+     id="text67">&lt;&lt;extend&gt;&gt;</text>
 </svg>

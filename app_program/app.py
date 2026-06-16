@@ -20,6 +20,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import base64
 import cv2
 import numpy as np
+from ai_client import AIServiceError, analyze_frame
 from database import Base, SessionLocal, engine, init_db, migrate_db, seed_admin_user
 from models.db_models import AppSetting, Attendance, SchoolClass, Student, Teacher, User, class_students
 from sqlalchemy import Date as SQLDate, DateTime as SQLDateTime, MetaData, Table, Time as SQLTime, inspect, or_, select, text
@@ -28,16 +29,11 @@ from sqlalchemy.orm import selectinload
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "henokh-dev-secret-key")
 BASE_DIR = Path(__file__).resolve().parent
-FACE_MODEL_PATH = BASE_DIR / "model" / "best.pt"
-SPOOF_MODEL_PATH = BASE_DIR / "model" / "mini_cnn_real_spoof.keras"
-SPOOF_LABELS = ("real", "spoof")
 SPOOF_REAL_THRESHOLD = 0.5
 ANTI_SPOOF_SETTING_KEY = "anti_spoof_enabled"
 FACE_MATCH_THRESHOLD = float(os.getenv("FACE_MATCH_THRESHOLD", "0.55"))
 APP_TIMEZONE = ZoneInfo(os.getenv("APP_TIMEZONE", "Asia/Jakarta"))
 
-face_model = None
-spoof_model = None
 PER_PAGE_OPTIONS = (10, 25, 50, 100)
 BULK_STUDENT_ROOT = "data"
 BULK_STUDENT_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
@@ -47,10 +43,6 @@ BULK_STUDENT_FAILURE_LOG_DIR = BASE_DIR / "logs"
 DATABASE_BACKUP_FORMAT = "henokh-db-backup"
 DATABASE_BACKUP_VERSION = 1
 MAX_DATABASE_BACKUP_BYTES = 200 * 1024 * 1024
-
-
-class ModelUnavailableError(RuntimeError):
-    pass
 
 
 def parse_time_field(value):
@@ -503,35 +495,6 @@ def build_presence_dashboard_context(session):
         "next_month": next_month,
         "calendar_weeks": calendar_weeks,
     }
-
-
-def get_face_model():
-    global face_model
-
-    if face_model is None:
-        try:
-            from ultralytics import YOLO
-
-            face_model = YOLO(str(FACE_MODEL_PATH))
-        except Exception as error:
-            raise ModelUnavailableError(f"Face detection model unavailable: {error}") from error
-
-    return face_model
-
-
-def get_spoof_model():
-    global spoof_model
-
-    if spoof_model is None:
-        try:
-            from models.mini_cnn import build_mini_cnn
-
-            spoof_model = build_mini_cnn()
-            spoof_model.load_weights(str(SPOOF_MODEL_PATH))
-        except Exception as error:
-            raise ModelUnavailableError(f"Spoof detection model unavailable: {error}") from error
-
-    return spoof_model
 
 
 @app.cli.command("init-db")
@@ -1416,7 +1379,7 @@ def bulk_import_students():
 
                     if embedding_warning:
                         warning_count += 1
-                except (ModelUnavailableError, ValueError) as error:
+                except (AIServiceError, ValueError) as error:
                     db_session.rollback()
                     errors.append(f"{label}: {error}")
                 except Exception as error:
@@ -1576,48 +1539,6 @@ def presence():
     )
 
 
-def classify_real_spoof(frame, x1, y1, x2, y2):
-    frame_height, frame_width = frame.shape[:2]
-    left = max(0, int(x1))
-    top = max(0, int(y1))
-    right = min(frame_width, int(x2))
-    bottom = min(frame_height, int(y2))
-
-    if right <= left or bottom <= top:
-        return None
-
-    face = frame[top:bottom, left:right]
-    face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
-    face = cv2.resize(face, (112, 112), interpolation=cv2.INTER_AREA)
-    face = face.astype("float32") / 255.0
-    scores = get_spoof_model().predict(np.expand_dims(face, axis=0), verbose=0)[0]
-    real_score = float(scores[0])
-    class_id = 0 if real_score >= SPOOF_REAL_THRESHOLD else 1
-
-    return {
-        "label": SPOOF_LABELS[class_id],
-        "classId": class_id,
-        "confidence": round(real_score, 4),
-        "scores": {
-            label: round(float(score), 4)
-            for label, score in zip(SPOOF_LABELS, scores)
-        },
-        "threshold": SPOOF_REAL_THRESHOLD
-    }
-
-
-def get_model_label(model, class_id):
-    names = getattr(model, "names", {})
-
-    if isinstance(names, dict):
-        return names.get(class_id, "face")
-
-    if isinstance(names, (list, tuple)) and 0 <= class_id < len(names):
-        return names[class_id]
-
-    return "face"
-
-
 def decode_image_data(image_data):
     if "," in image_data:
         image_data = image_data.split(",", 1)[1]
@@ -1631,17 +1552,14 @@ def decode_image_bytes(image_bytes):
     return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
 
-def crop_detected_face(frame, detection):
-    frame_height, frame_width = frame.shape[:2]
-    left = max(0, int(detection["x"]))
-    top = max(0, int(detection["y"]))
-    right = min(frame_width, int(detection["x"] + detection["width"]))
-    bottom = min(frame_height, int(detection["y"] + detection["height"]))
+def encode_image_data(frame):
+    success, image_buffer = cv2.imencode(".jpg", frame)
 
-    if right <= left or bottom <= top:
-        return None
+    if not success:
+        raise ValueError("Invalid face image")
 
-    return frame[top:bottom, left:right]
+    image_base64 = base64.b64encode(image_buffer.tobytes()).decode("ascii")
+    return f"data:image/jpeg;base64,{image_base64}"
 
 
 def detection_area(detection):
@@ -1668,7 +1586,12 @@ def build_student_face_embedding(frame):
         raise ValueError("Invalid face image")
 
     anti_spoof_enabled = is_anti_spoof_enabled()
-    detections = detect_faces(frame, anti_spoof_enabled=anti_spoof_enabled)
+    ai_result = analyze_frame(
+        encode_image_data(frame),
+        anti_spoof_enabled=anti_spoof_enabled,
+        include_embeddings=True
+    )
+    detections = ai_result.get("detections") or []
 
     detection = select_best_registration_detection(detections)
 
@@ -1680,17 +1603,15 @@ def build_student_face_embedding(frame):
     if anti_spoof_enabled and real_score < SPOOF_REAL_THRESHOLD:
         raise ValueError("Face must pass real-person check before saving")
 
-    face = crop_detected_face(frame, detection)
+    if detection.get("embedding"):
+        return detection["embedding"], None
 
-    if face is None:
-        raise ValueError("Unable to crop detected face")
+    embedding_error = detection.get("embeddingError")
 
-    try:
-        from models.mobilefacenet import build_face_embedding
+    if embedding_error:
+        return None, embedding_error
 
-        return build_face_embedding(face), None
-    except FileNotFoundError as error:
-        return None, str(error)
+    raise ValueError("Unable to build face embedding")
 
 
 def parse_bulk_student_folder(folder_name):
@@ -1893,7 +1814,7 @@ def serialize_attendance(attendance, action=None, message=None):
     }
 
 
-def identify_detected_faces(frame, detections, class_id=None, record_attendance=False):
+def identify_detected_faces(detections, class_id=None, record_attendance=False):
     if not detections:
         return detections
 
@@ -1925,22 +1846,18 @@ def identify_detected_faces(frame, detections, class_id=None, record_attendance=
         if not known_students:
             return detections
 
-        from models.mobilefacenet import build_face_embedding
-
         for detection in detections:
-            face = crop_detected_face(frame, detection)
-
-            if face is None:
-                continue
-
-            try:
-                embedding = np.asarray(build_face_embedding(face), dtype="float32")
-            except Exception as error:
+            if detection.get("embeddingError"):
                 detection["identity"] = {
                     "matched": False,
-                    "error": str(error)
+                    "error": detection["embeddingError"]
                 }
                 continue
+
+            if not detection.get("embedding"):
+                continue
+
+            embedding = np.asarray(detection["embedding"], dtype="float32")
 
             best_student = None
             best_similarity = -1.0
@@ -1998,57 +1915,10 @@ def identify_detected_faces(frame, detections, class_id=None, record_attendance=
         SessionLocal.remove()
 
 
-def disabled_liveness_result():
-    return {
-        "label": "disabled",
-        "classId": None,
-        "confidence": 1,
-        "scores": {"real": 1, "spoof": 0},
-        "enabled": False
-    }
-
-
-def detect_faces(frame, anti_spoof_enabled=None):
-    if anti_spoof_enabled is None:
-        anti_spoof_enabled = is_anti_spoof_enabled()
-
-    model = get_face_model()
-    results = model.predict(frame, conf=0.35, verbose=False)
-    detections = []
-
-    for result in results:
-        for box in result.boxes:
-            x1, y1, x2, y2 = box.xyxy[0].tolist()
-            confidence = float(box.conf[0])
-            class_id = int(box.cls[0])
-
-            if anti_spoof_enabled:
-                try:
-                    liveness = classify_real_spoof(frame, x1, y1, x2, y2)
-                    liveness["enabled"] = True
-                except Exception as error:
-                    liveness = {
-                        "label": "unverified",
-                        "classId": None,
-                        "confidence": 0,
-                        "scores": {"real": 0, "spoof": 1},
-                        "enabled": True,
-                        "error": str(error)
-                    }
-            else:
-                liveness = disabled_liveness_result()
-
-            detections.append({
-                "bbox": [round(x1, 2), round(y1, 2), round(x2, 2), round(y2, 2)],
-                "x": round(x1, 2),
-                "y": round(y1, 2),
-                "width": round(x2 - x1, 2),
-                "height": round(y2 - y1, 2),
-                "confidence": round(confidence, 4),
-                "classId": class_id,
-                "label": get_model_label(model, class_id),
-                "liveness": liveness
-            })
+def strip_detection_embeddings(detections):
+    for detection in detections:
+        detection.pop("embedding", None)
+        detection.pop("embeddingError", None)
 
     return detections
 
@@ -2114,8 +1984,8 @@ def create_student():
 
             try:
                 face_embedding, embedding_warning = build_student_face_embedding(frame)
-            except ModelUnavailableError as error:
-                return jsonify({"success": False, "message": str(error)}), 503
+            except AIServiceError as error:
+                return jsonify({"success": False, "message": str(error)}), error.status_code
             except ValueError as error:
                 return jsonify({"success": False, "message": str(error)}), 400
 
@@ -2174,15 +2044,20 @@ def upload_frame():
 
     try:
         anti_spoof_enabled = is_anti_spoof_enabled()
-        detections = detect_faces(frame, anti_spoof_enabled=anti_spoof_enabled)
+        ai_result = analyze_frame(
+            data["image"],
+            anti_spoof_enabled=anti_spoof_enabled,
+            include_embeddings=True
+        )
+        detections = ai_result.get("detections") or []
         detections = identify_detected_faces(
-            frame,
             detections,
             class_id=class_id,
             record_attendance=class_id is not None
         )
-    except ModelUnavailableError as error:
-        return jsonify({"success": False, "message": str(error)}), 503
+        detections = strip_detection_embeddings(detections)
+    except AIServiceError as error:
+        return jsonify({"success": False, "message": str(error)}), error.status_code
 
     print(f"Received frame: {width}x{height}, detections: {len(detections)}")
 

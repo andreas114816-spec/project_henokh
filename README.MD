@@ -1,16 +1,33 @@
 # Panduan `henokh_project.py`
 
-`henokh_project.py` adalah script bantu untuk menyiapkan dan menjalankan aplikasi Henokh Presence lewat Windows + Ubuntu WSL. Jadi, daripada setup WSL, Python, MariaDB, virtual environment, dependency, model MobileFaceNet, dan Gunicorn satu per satu, semua langkah pentingnya sudah dibungkus di script ini.
+`henokh_project.py` adalah script bantu untuk menyiapkan dan menjalankan aplikasi Henokh Presence lewat Windows + Ubuntu WSL. Jadi, daripada setup WSL, Python, MariaDB, virtual environment, dependency, model MobileFaceNet, service AI, dan Gunicorn satu per satu, semua langkah pentingnya sudah dibungkus di script ini.
 
 Singkatnya, script ini dipakai untuk:
 
 1. Install kebutuhan aplikasi.
-2. Menjalankan aplikasi.
+2. Menjalankan backend aplikasi dan service AI face detection.
 3. Update project dari Git.
 4. Cek status environment.
 5. Masuk ke shell WSL atau folder project.
 
 Script ini dijalankan dari Windows, bukan dari terminal Linux/WSL langsung. Nanti kalau ada pekerjaan yang harus dilakukan di Linux, script akan mengirim perintahnya ke Ubuntu WSL secara otomatis.
+
+## Struktur Project
+
+Project sekarang dipisah menjadi dua program yang berjalan sebagai service berbeda:
+
+| Folder | Isi | Port default |
+| --- | --- | --- |
+| `app_program` | Frontend template/static, backend Flask, database, login, student/class/attendance, dan pemanggil service AI. | `8000` |
+| `ai_program` | Service Flask khusus face detection, anti-spoof, crop wajah, dan embedding MobileFaceNet. | `8001` |
+
+Alur singkatnya:
+
+1. Browser membuka backend di `http://localhost:8000`.
+2. Backend menerima request kamera atau registrasi siswa.
+3. Backend mengirim gambar ke AI service lewat `AI_SERVICE_URL`.
+4. AI service mengembalikan bounding box, liveness, dan embedding wajah.
+5. Backend mencocokkan embedding dengan data siswa, lalu menyimpan presensi ke database.
 
 ## Cara Pakai Cepat
 
@@ -32,7 +49,8 @@ Alur paling umum biasanya seperti ini:
 1. Jalankan `python henokh_project.py install` untuk setup pertama kali.
 2. Setelah selesai, jalankan `python henokh_project.py run`.
 3. Buka aplikasi di browser lewat `http://localhost:8000`.
-4. Kalau ada update dari repository, jalankan `python henokh_project.py pull`.
+4. AI service berjalan internal di `http://localhost:8001`.
+5. Kalau ada update dari repository, jalankan `python henokh_project.py pull`.
 
 ## Konfigurasi Penting
 
@@ -46,10 +64,14 @@ Konfigurasi utama ada di bagian atas file `henokh_project.py`. Kalau ingin mengg
 | `AUTO_GIT_PULL` | Mengatur apakah command `install` boleh melakukan `git pull` otomatis saat folder project sudah ada. |
 | `PYTHON_VERSION` | Versi Python yang akan dipakai. Saat ini `3.12.13`. |
 | `VENV_NAME` | Nama virtual environment. Saat ini `.venv`. |
-| `GUNICORN_APP` | Target aplikasi Gunicorn. Saat ini `app:app`. |
+| `APP_PROGRAM_DIR` | Folder backend/frontend. Saat ini `app_program`. |
+| `AI_PROGRAM_DIR` | Folder service AI face detection. Saat ini `ai_program`. |
 | `GUNICORN_HOST` | Host untuk Gunicorn. Saat ini `0.0.0.0`. |
-| `GUNICORN_PORT` | Port aplikasi. Saat ini `8000`. |
-| `GUNICORN_WORKERS` | Jumlah worker Gunicorn. Saat ini `3`. |
+| `GUNICORN_PORT` | Port backend aplikasi. Saat ini `8000`. |
+| `GUNICORN_WORKERS` | Jumlah worker backend Gunicorn. Saat ini `3`. |
+| `AI_SERVICE_HOST` | Host service AI. Saat ini `127.0.0.1`. |
+| `AI_SERVICE_PORT` | Port service AI. Saat ini `8001`. |
+| `AI_SERVICE_WORKERS` | Jumlah worker AI Gunicorn. Saat ini `1`, supaya model tidak dimuat berkali-kali. |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Nama database, user, dan password MariaDB. |
 | `MOBILEFACENET_REPO_URL` | Repository MobileFaceNet yang dipakai aplikasi. |
 | `LOG_FILE` | Lokasi file log script. |
@@ -63,7 +85,7 @@ Saat command dijalankan, script akan:
 1. Mengecek dulu apakah script memang dijalankan dari Windows.
 2. Meminta izin Administrator kalau command-nya butuh akses sistem, misalnya saat install.
 3. Menjalankan command Windows seperti `wsl`, `dism.exe`, atau PowerShell.
-4. Mengirim perintah Bash ke Ubuntu WSL untuk setup Linux, install dependency, update project, migrasi database, dan menjalankan aplikasi.
+4. Mengirim perintah Bash ke Ubuntu WSL untuk setup Linux, install dependency, update project, migrasi database, menjalankan backend, dan menjalankan service AI.
 5. Menampilkan output di terminal sambil menyimpan log ke file.
 
 Beberapa fungsi penting di dalam script:
@@ -98,13 +120,14 @@ Yang dilakukan oleh `install`:
 9. Clone repository kalau folder project belum ada.
 10. Kalau folder project sudah ada dan valid sebagai Git repository, script akan `git stash` lalu `git pull` jika `AUTO_GIT_PULL=True`.
 11. Membuat virtual environment `.venv`.
-12. Install dependency dari `requirements.txt`.
-13. Memperbaiki dependency penting seperti `typing_extensions`, Torch CPU, TensorFlow, dan Keras.
-14. Install Gunicorn kalau belum ada.
-15. Membuat atau memperbarui file `.env`.
-16. Mengecek model MobileFaceNet, lalu clone MobileFaceNet kalau belum ada.
-17. Menjalankan migrasi database.
-18. Membuat atau memastikan admin default lewat seed admin.
+12. Install dependency backend dari `app_program/requirements.txt`.
+13. Install dependency AI service dari `ai_program/requirements.txt`.
+14. Memperbaiki dependency penting seperti `typing_extensions`, Torch CPU, TensorFlow, dan Keras.
+15. Install Gunicorn kalau belum ada.
+16. Membuat atau memperbarui file `.env`.
+17. Mengecek model MobileFaceNet di `ai_program/model/MobileFaceNet`, lalu clone MobileFaceNet kalau belum ada.
+18. Menjalankan migrasi database dari `app_program`.
+19. Membuat atau memastikan admin default lewat seed admin.
 
 Kalau Windows meminta restart saat proses WSL, restart dulu komputernya. Setelah itu jalankan lagi:
 
@@ -144,17 +167,25 @@ Yang dilakukan oleh `run`:
 2. Mengecek apakah project sudah siap.
 3. Menyalakan MariaDB.
 4. Memastikan database dan user database tersedia.
-5. Mengecek port aplikasi, yaitu `8000` secara default.
+5. Mengecek port backend `8000` dan port AI service `8001`.
 6. Kalau port sedang dipakai proses lain di WSL, proses itu akan dihentikan dulu.
 7. Memperbarui nilai database di file `.env`.
 8. Memuat `.env`.
-9. Menjalankan aplikasi dengan Gunicorn.
-10. Menampilkan alamat aplikasi.
+9. Menjalankan migrasi database dari `app_program`.
+10. Menjalankan AI service dengan Gunicorn dari `ai_program`.
+11. Menjalankan backend dengan Gunicorn dari `app_program`.
+12. Menampilkan alamat backend dan AI service.
 
 Alamat default aplikasi:
 
 ```text
 http://localhost:8000
+```
+
+Alamat default AI service:
+
+```text
+http://localhost:8001
 ```
 
 Catatan: `run` hanya menjalankan aplikasi. Command ini tidak melakukan `git pull` dan tidak update dependency. Kalau ingin update project, gunakan `pull`.
@@ -180,11 +211,11 @@ git stash push -u -m "auto-stash-before-manual-pull"
 ```
 
 6. Menjalankan `git pull`.
-7. Install atau update dependency dari `requirements.txt`.
+7. Install atau update dependency dari `app_program/requirements.txt` dan `ai_program/requirements.txt`.
 8. Memperbaiki dependency penting seperti `typing_extensions`, Torch CPU, TensorFlow, dan Keras.
 9. Mengecek Gunicorn.
-10. Mengecek model MobileFaceNet.
-11. Menjalankan migrasi database.
+10. Mengecek model MobileFaceNet di `ai_program/model/MobileFaceNet`.
+11. Menjalankan migrasi database dari `app_program`.
 12. Menjalankan seed admin.
 
 Biasanya command ini dipakai setelah ada perubahan baru di GitHub atau repository utama.
@@ -249,7 +280,8 @@ DB_PORT=3306
 DB_NAME=presence
 DB_USER=user_admin
 DB_PASSWORD=password123
-MOBILEFACENET_MODEL_PATH=/home/<user>/project_henokh/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt
+MOBILEFACENET_MODEL_PATH=/home/<user>/project_henokh/ai_program/model/MobileFaceNet/pretrained_model/mobilefacenet_scripted.pt
+AI_SERVICE_URL=http://127.0.0.1:8001
 ```
 
 Port MariaDB bisa saja berbeda. Script menyimpan port MariaDB yang berhasil terdeteksi di:
@@ -436,9 +468,9 @@ Kalau `run` mengatakan project belum siap, biasanya instalasi belum lengkap. Jal
 python henokh_project.py install
 ```
 
-### Port 8000 Sudah Dipakai
+### Port 8000 atau 8001 Sudah Dipakai
 
-Saat `run`, script akan mengecek port `8000`. Kalau ada proses lain di WSL yang memakai port itu, script akan mencoba menghentikannya dulu.
+Saat `run`, script akan mengecek port backend `8000` dan port AI service `8001`. Kalau ada proses lain di WSL yang memakai salah satu port itu, script akan mencoba menghentikannya dulu.
 
 Kalau masih bermasalah, cek kondisi environment dengan:
 
@@ -469,6 +501,7 @@ Setelah masuk ke shell WSL, beberapa command manual yang sering dipakai:
 ```bash
 git status
 source .venv/bin/activate
+cd app_program
 flask --app app migrate-db
 ```
 
@@ -478,8 +511,8 @@ flask --app app migrate-db
 | --- | --- | --- |
 | `install` | Setup pertama atau memperbaiki instalasi | Setup WSL, Python, MariaDB, project, dependency, `.env`, migrasi, dan seed admin |
 | `install --clean-project` | Clone ulang project | Backup folder project lama lalu clone ulang |
-| `run` | Menjalankan aplikasi | Start MariaDB, kosongkan port aplikasi, lalu jalankan Gunicorn |
-| `pull` | Mengambil update terbaru | `git stash`, `git pull`, update dependency, migrasi, dan seed admin |
+| `run` | Menjalankan aplikasi | Start MariaDB, kosongkan port backend dan AI, lalu jalankan dua service Gunicorn |
+| `pull` | Mengambil update terbaru | `git stash`, `git pull`, update dependency dua program, migrasi, dan seed admin |
 | `status` | Mengecek environment | Menampilkan status WSL, Python, MariaDB, project, dan `.env` |
 | `shell` | Masuk ke Ubuntu WSL | Membuka shell distro WSL |
 | `project-shell` | Masuk langsung ke folder project | Membuka shell di `$HOME/project_henokh` |
@@ -490,6 +523,6 @@ Kalau ada konfigurasi yang diubah, sesuaikan command yang dijalankan setelahnya.
 
 Contoh:
 
-1. Kalau mengubah `GUNICORN_PORT`, jalankan lagi `python henokh_project.py run`.
-2. Kalau mengubah `requirements.txt`, jalankan `python henokh_project.py pull` atau `python henokh_project.py install`.
-3. Kalau mengubah struktur database, pastikan migrasi tetap bisa dijalankan lewat `flask --app app migrate-db`.
+1. Kalau mengubah `GUNICORN_PORT` atau `AI_SERVICE_PORT`, jalankan lagi `python henokh_project.py run`.
+2. Kalau mengubah `app_program/requirements.txt` atau `ai_program/requirements.txt`, jalankan `python henokh_project.py pull` atau `python henokh_project.py install`.
+3. Kalau mengubah struktur database, pastikan migrasi tetap bisa dijalankan dari folder `app_program` lewat `flask --app app migrate-db`.
