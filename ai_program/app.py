@@ -1,6 +1,8 @@
 import base64
+import logging
 import os
 from pathlib import Path
+import time
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 os.environ.setdefault("YOLO_CONFIG_DIR", "/tmp")
@@ -14,6 +16,8 @@ from models.mobilefacenet import build_face_embedding
 
 
 app = Flask(__name__)
+logging.basicConfig(level=os.getenv("AI_SERVICE_LOG_LEVEL", "INFO"))
+app.logger.setLevel(os.getenv("AI_SERVICE_LOG_LEVEL", "INFO"))
 
 BASE_DIR = Path(__file__).resolve().parent
 FACE_MODEL_PATH = Path(os.getenv("FACE_MODEL_PATH", BASE_DIR / "model" / "best.pt")).expanduser()
@@ -24,9 +28,63 @@ SPOOF_REAL_THRESHOLD = float(os.getenv("SPOOF_REAL_THRESHOLD", "0.5"))
 face_model = None
 spoof_model = None
 
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+process = psutil.Process(os.getpid()) if psutil else None
+
 
 class ModelUnavailableError(RuntimeError):
     pass
+
+
+def get_resource_snapshot():
+    if process is None:
+        return None
+
+    with process.oneshot():
+        cpu_times = process.cpu_times()
+        return {
+            "rss_mb": process.memory_info().rss / (1024 * 1024),
+            "cpu_seconds": cpu_times.user + cpu_times.system
+        }
+
+
+def log_model_inference(model_name, elapsed_seconds, before_snapshot, after_snapshot):
+    if before_snapshot is None or after_snapshot is None:
+        app.logger.info(
+            "AI model inference | model=%s inference_ms=%.2f ram_mb=unavailable cpu_percent=unavailable",
+            model_name,
+            elapsed_seconds * 1000
+        )
+        return
+
+    cpu_delta = after_snapshot["cpu_seconds"] - before_snapshot["cpu_seconds"]
+    cpu_percent = (cpu_delta / elapsed_seconds) * 100 if elapsed_seconds > 0 else 0
+    ram_delta_mb = after_snapshot["rss_mb"] - before_snapshot["rss_mb"]
+
+    app.logger.info(
+        "AI model inference | model=%s inference_ms=%.2f ram_mb=%.2f ram_delta_mb=%+.2f cpu_percent=%.2f",
+        model_name,
+        elapsed_seconds * 1000,
+        after_snapshot["rss_mb"],
+        ram_delta_mb,
+        cpu_percent
+    )
+
+
+def run_measured_model(model_name, callback):
+    before_snapshot = get_resource_snapshot()
+    started_at = time.perf_counter()
+
+    try:
+        return callback()
+    finally:
+        elapsed_seconds = time.perf_counter() - started_at
+        after_snapshot = get_resource_snapshot()
+        log_model_inference(model_name, elapsed_seconds, before_snapshot, after_snapshot)
 
 
 def get_face_model():
@@ -94,7 +152,10 @@ def classify_real_spoof(frame, x1, y1, x2, y2):
     face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
     face = cv2.resize(face, (112, 112), interpolation=cv2.INTER_AREA)
     face = face.astype("float32") / 255.0
-    scores = get_spoof_model().predict(np.expand_dims(face, axis=0), verbose=0)[0]
+    scores = run_measured_model(
+        "MiniCNN anti-spoof",
+        lambda: get_spoof_model().predict(np.expand_dims(face, axis=0), verbose=0)[0]
+    )
     real_score = float(scores[0])
     class_id = 0 if real_score >= SPOOF_REAL_THRESHOLD else 1
 
@@ -134,7 +195,10 @@ def get_model_label(model, class_id):
 
 def detect_faces(frame, anti_spoof_enabled=True):
     model = get_face_model()
-    results = model.predict(frame, conf=0.35, verbose=False)
+    results = run_measured_model(
+        "YOLO face detection",
+        lambda: model.predict(frame, conf=0.35, verbose=False)
+    )
     detections = []
 
     for result in results:
@@ -183,7 +247,10 @@ def add_embeddings(frame, detections):
             continue
 
         try:
-            detection["embedding"] = build_face_embedding(face)
+            detection["embedding"] = run_measured_model(
+                "MobileFaceNet embedding",
+                lambda: build_face_embedding(face)
+            )
         except FileNotFoundError as error:
             detection["embeddingError"] = str(error)
         except Exception as error:
