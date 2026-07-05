@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent
 FACE_MODEL_PATH = Path(os.getenv("FACE_MODEL_PATH", BASE_DIR / "model" / "best.pt")).expanduser()
 SPOOF_MODEL_PATH = Path(os.getenv("SPOOF_MODEL_PATH", BASE_DIR / "model" / "mini_cnn_real_spoof.keras")).expanduser()
 SPOOF_LABELS = ("real", "spoof")
-SPOOF_REAL_THRESHOLD = float(os.getenv("SPOOF_REAL_THRESHOLD", "0.5"))
+SPOOF_REAL_THRESHOLD = float(os.getenv("SPOOF_REAL_THRESHOLD", "0.75"))
 
 face_model = None
 spoof_model = None
