@@ -477,6 +477,80 @@
                 </section>
 
                 <section class="mt-5 w-full rounded-lg bg-white p-5 shadow">
+                    <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
+                        <div>
+                            <h3 class="text-lg font-semibold">Debug Model Evaluation</h3>
+                            <p class="mt-1 text-sm text-gray-600">
+                                Test the full YOLOv12, MiniCNN, and MobileFaceNet path with a ZIP of images named <span class="font-mono">REAL_STUDENT_NAME_12345_01.jpg</span> or <span class="font-mono">SPOOF_STUDENT_NAME_12345_01.jpg</span>.
+                            </p>
+                            <form
+                                action="{{ url_for('debug_model_evaluation') }}"
+                                method="post"
+                                enctype="multipart/form-data"
+                                class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center"
+                                data-debug-model-form>
+                                <input
+                                    type="file"
+                                    name="debug_model_zip"
+                                    accept=".zip,application/zip"
+                                    required
+                                    data-debug-model-input
+                                    class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200">
+                                <button
+                                    type="submit"
+                                    data-debug-model-button
+                                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                    Run Evaluation
+                                </button>
+                            </form>
+                            <p class="mt-3 hidden text-sm font-medium text-blue-700" data-debug-model-status>
+                                Running model chain. Large ZIP files can take several minutes.
+                            </p>
+                        </div>
+
+                        {% if debug_model_result %}
+                            <div class="rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Latest Result</h4>
+                                        <p class="mt-1 text-sm text-gray-600">
+                                            {{ debug_model_result.processed }} processed, {{ debug_model_result.failed }} failed
+                                        </p>
+                                    </div>
+                                    <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                                        {{ debug_model_result.report_path }}
+                                    </span>
+                                </div>
+
+                                <dl class="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                                    <div class="rounded-lg bg-gray-50 p-3">
+                                        <dt class="text-xs font-medium uppercase text-gray-500">Spoof Prevented</dt>
+                                        <dd class="mt-1 text-xl font-bold text-gray-900">{{ debug_model_result.spoof_prevented_pct }}%</dd>
+                                        <dd class="text-xs text-gray-600">{{ debug_model_result.spoof_prevented }} correct, {{ debug_model_result.spoof_false_accepted }} false accepted / {{ debug_model_result.spoof_total }}</dd>
+                                    </div>
+                                    <div class="rounded-lg bg-gray-50 p-3">
+                                        <dt class="text-xs font-medium uppercase text-gray-500">Real Accepted</dt>
+                                        <dd class="mt-1 text-xl font-bold text-gray-900">{{ debug_model_result.real_accepted_pct }}%</dd>
+                                        <dd class="text-xs text-gray-600">{{ debug_model_result.real_accepted }} correct, {{ debug_model_result.real_false_alarm }} false alarmed / {{ debug_model_result.real_total }}</dd>
+                                    </div>
+                                    <div class="rounded-lg bg-gray-50 p-3">
+                                        <dt class="text-xs font-medium uppercase text-gray-500">Student Detected</dt>
+                                        <dd class="mt-1 text-xl font-bold text-gray-900">{{ debug_model_result.identity_correct_pct }}%</dd>
+                                        <dd class="text-xs text-gray-600">{{ debug_model_result.identity_correct }} correct, {{ debug_model_result.identity_wrong }} wrong / {{ debug_model_result.identity_total }}</dd>
+                                    </div>
+                                </dl>
+
+                                {% if debug_model_result.unlabeled_liveness or debug_model_result.unknown_student or debug_model_result.structure_errors %}
+                                    <p class="mt-3 text-xs text-gray-500">
+                                        Notes: {{ debug_model_result.unlabeled_liveness }} unlabeled liveness, {{ debug_model_result.unknown_student }} unknown NIM, {{ debug_model_result.structure_errors }} filename errors.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="mt-5 w-full rounded-lg bg-white p-5 shadow">
                     <div class="grid gap-5 lg:grid-cols-2">
                         <div class="flex flex-col justify-between gap-4 rounded-lg border border-gray-200 p-4">
                             <div>
@@ -843,6 +917,29 @@
                 if (button) {
                     button.disabled = true;
                     button.textContent = "Processing...";
+                    button.classList.add("cursor-not-allowed", "bg-blue-400");
+                    button.classList.remove("hover:bg-blue-700");
+                }
+
+                if (input) {
+                    input.classList.add("pointer-events-none", "opacity-60");
+                }
+
+                if (status) {
+                    status.classList.remove("hidden");
+                }
+            });
+        });
+
+        document.querySelectorAll("[data-debug-model-form]").forEach(function (form) {
+            form.addEventListener("submit", function () {
+                const button = form.querySelector("[data-debug-model-button]");
+                const input = form.querySelector("[data-debug-model-input]");
+                const status = document.querySelector("[data-debug-model-status]");
+
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = "Running...";
                     button.classList.add("cursor-not-allowed", "bg-blue-400");
                     button.classList.remove("hover:bg-blue-700");
                 }

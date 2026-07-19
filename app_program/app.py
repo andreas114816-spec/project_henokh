@@ -40,6 +40,9 @@ BULK_STUDENT_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 MAX_BULK_STUDENT_ZIP_BYTES = 100 * 1024 * 1024
 MAX_BULK_STUDENT_PHOTO_BYTES = 15 * 1024 * 1024
 BULK_STUDENT_FAILURE_LOG_DIR = BASE_DIR / "logs"
+DEBUG_MODEL_ZIP_BYTES = 100 * 1024 * 1024
+DEBUG_MODEL_IMAGE_BYTES = 15 * 1024 * 1024
+DEBUG_MODEL_REPORT_DIR = BASE_DIR / "logs"
 DATABASE_BACKUP_FORMAT = "henokh-db-backup"
 DATABASE_BACKUP_VERSION = 1
 MAX_DATABASE_BACKUP_BYTES = 200 * 1024 * 1024
@@ -646,7 +649,8 @@ def dashboard():
             anti_spoof_enabled=is_anti_spoof_enabled(),
             presence_context=presence_context,
             archived_cleanup_counts=archived_cleanup_counts,
-            archived_restore_data=archived_restore_data
+            archived_restore_data=archived_restore_data,
+            debug_model_result=flask_session.pop("debug_model_result", None)
         )
     finally:
         SessionLocal.remove()
@@ -879,6 +883,336 @@ def restore_database():
         flash(str(error), "error")
     except Exception as error:
         flash(f"Database restore failed: {error}", "error")
+
+    return redirect(url_for("dashboard", section="settings"))
+
+
+def safe_percentage(value, total):
+    return round((value / total) * 100, 2) if total else 0
+
+
+def normalize_debug_name(value):
+    return re.sub(r"\s+", " ", (value or "").strip()).casefold()
+
+
+def parse_debug_model_image_name(filename):
+    path = PurePosixPath(filename)
+    image_name = path.name
+
+    if not image_name or image_name.startswith("."):
+        return None
+
+    image_path = PurePosixPath(image_name.lower())
+
+    if image_path.suffix not in BULK_STUDENT_PHOTO_EXTENSIONS:
+        return None
+
+    stem = image_name[:len(image_name) - len(path.suffix)]
+    tokens = [token.strip() for token in stem.split("_") if token.strip()]
+    lowered_tokens = [token.casefold() for token in tokens]
+
+    if len(tokens) < 3:
+        raise ValueError("filename must use CLASS_NAME_NIM*")
+
+    class_token = lowered_tokens[0]
+
+    if class_token in {"spoof", "fake"}:
+        expected_liveness = "spoof"
+    elif class_token in {"real", "live"}:
+        expected_liveness = "real"
+    else:
+        raise ValueError("CLASS must be real or spoof")
+
+    nim_index = None
+
+    for index in range(2, len(tokens)):
+        if tokens[index].isdigit():
+            nim_index = index
+            break
+
+    if nim_index is None:
+        raise ValueError("filename must use CLASS_NAME_NIM* with numeric NIM")
+
+    name = format_person_name(" ".join(tokens[1:nim_index]))
+    nim = tokens[nim_index]
+
+    return {
+        "filename": filename,
+        "class_name": expected_liveness,
+        "name": name,
+        "nim": nim,
+        "expected_liveness": expected_liveness,
+    }
+
+
+def find_debug_model_images(zip_file):
+    images = []
+    errors = []
+
+    for zip_info in zip_file.infolist():
+        if zip_info.is_dir():
+            continue
+
+        path = PurePosixPath(zip_info.filename)
+
+        if path.parts and path.parts[0] == "__MACOSX":
+            continue
+
+        try:
+            parsed = parse_debug_model_image_name(zip_info.filename)
+        except ValueError as error:
+            errors.append(f"{zip_info.filename}: {error}")
+            continue
+
+        if parsed is None:
+            continue
+
+        images.append((zip_info, parsed))
+
+    return images, errors
+
+
+def select_best_debug_detection(detections):
+    live_detections = [
+        detection
+        for detection in detections
+        if (detection.get("liveness") or {}).get("label") == "real"
+    ]
+
+    return select_best_registration_detection(live_detections or detections)
+
+
+def predicted_liveness_label(detection):
+    if detection is None:
+        return "spoof"
+
+    liveness = detection.get("liveness") or {}
+    label = liveness.get("label")
+
+    if label in {"real", "spoof"}:
+        return label
+
+    real_score = (liveness.get("scores") or {}).get("real", 0)
+    threshold = liveness.get("threshold", SPOOF_REAL_THRESHOLD)
+    return "real" if real_score >= threshold else "spoof"
+
+
+def evaluate_debug_model_zip(zip_file):
+    entries, structure_errors = find_debug_model_images(zip_file)
+
+    if not entries:
+        raise ValueError("No standard image files found. Use filenames like REAL_STUDENT_NAME_12345_01.jpg or SPOOF_STUDENT_NAME_12345_01.jpg.")
+
+    session = SessionLocal()
+
+    try:
+        known_students = {
+            nim.casefold(): normalize_debug_name(name)
+            for nim, name in session.query(Student.nim, Student.name)
+            .filter(Student.deleted_at.is_(None), Student.face_embeddings.is_not(None))
+            .all()
+        }
+    finally:
+        SessionLocal.remove()
+
+    totals = {
+        "processed": 0,
+        "failed": 0,
+        "unlabeled_liveness": 0,
+        "spoof_total": 0,
+        "spoof_prevented": 0,
+        "spoof_false_accepted": 0,
+        "real_total": 0,
+        "real_accepted": 0,
+        "real_false_alarm": 0,
+        "identity_total": 0,
+        "identity_correct": 0,
+        "identity_wrong": 0,
+        "unknown_student": 0,
+    }
+    rows = []
+
+    for zip_info, expected in sorted(entries, key=lambda item: item[0].filename):
+        row = {
+            "file": expected["filename"],
+            "class_name": expected["class_name"],
+            "expected_name": expected["name"],
+            "expected_nim": expected["nim"],
+            "expected_liveness": expected["expected_liveness"] or "unlabeled",
+        }
+
+        if zip_info.file_size > DEBUG_MODEL_IMAGE_BYTES:
+            row["status"] = "failed"
+            row["error"] = "image file is larger than 15 MB"
+            totals["failed"] += 1
+            rows.append(row)
+            continue
+
+        try:
+            image_bytes = zip_file.read(zip_info)
+            frame = decode_image_bytes(image_bytes)
+
+            if frame is None:
+                raise ValueError("Invalid image")
+
+            ai_result = analyze_frame(
+                encode_image_data(frame),
+                anti_spoof_enabled=True,
+                include_embeddings=True
+            )
+            detections = identify_detected_faces(ai_result.get("detections") or [])
+            detection = select_best_debug_detection(detections)
+            predicted_label = predicted_liveness_label(detection)
+            identity = (detection or {}).get("identity") or {}
+            predicted_nim = identity.get("nim") if identity.get("matched") else None
+            predicted_name = identity.get("name") if identity.get("matched") else None
+
+            row.update({
+                "status": "processed",
+                "detections": len(detections),
+                "predicted_liveness": predicted_label,
+                "predicted_name": predicted_name or "-",
+                "predicted_nim": predicted_nim or "-",
+                "identity_similarity": identity.get("similarity", "-"),
+            })
+            totals["processed"] += 1
+
+            if expected["expected_liveness"] == "spoof":
+                totals["spoof_total"] += 1
+
+                if predicted_label == "spoof":
+                    totals["spoof_prevented"] += 1
+                else:
+                    totals["spoof_false_accepted"] += 1
+            elif expected["expected_liveness"] == "real":
+                totals["real_total"] += 1
+
+                if predicted_label == "real":
+                    totals["real_accepted"] += 1
+                else:
+                    totals["real_false_alarm"] += 1
+            else:
+                totals["unlabeled_liveness"] += 1
+
+            expected_nim_key = expected["nim"].casefold()
+            expected_name_key = normalize_debug_name(expected["name"])
+            known_name_key = known_students.get(expected_nim_key)
+
+            if known_name_key is None or known_name_key != expected_name_key:
+                totals["unknown_student"] += 1
+                row["identity_result"] = "unknown expected name/NIM"
+            elif expected["expected_liveness"] != "spoof":
+                totals["identity_total"] += 1
+                predicted_nim_matches = (
+                    (predicted_nim or "").casefold() == expected_nim_key
+                )
+                predicted_name_matches = (
+                    normalize_debug_name(predicted_name) == expected_name_key
+                )
+
+                if predicted_nim_matches and predicted_name_matches:
+                    totals["identity_correct"] += 1
+                    row["identity_result"] = "correct"
+                else:
+                    totals["identity_wrong"] += 1
+                    row["identity_result"] = "wrong"
+            else:
+                row["identity_result"] = "skipped for spoof sample"
+        except (AIServiceError, ValueError) as error:
+            row["status"] = "failed"
+            row["error"] = str(error)
+            totals["failed"] += 1
+        except Exception as error:
+            row["status"] = "failed"
+            row["error"] = f"failed to evaluate ({error})"
+            totals["failed"] += 1
+
+        rows.append(row)
+
+    report_path = write_debug_model_report(rows, structure_errors, totals)
+
+    return {
+        "processed": totals["processed"],
+        "failed": totals["failed"],
+        "spoof_total": totals["spoof_total"],
+        "spoof_prevented": totals["spoof_prevented"],
+        "spoof_false_accepted": totals["spoof_false_accepted"],
+        "spoof_prevented_pct": safe_percentage(totals["spoof_prevented"], totals["spoof_total"]),
+        "spoof_false_accepted_pct": safe_percentage(totals["spoof_false_accepted"], totals["spoof_total"]),
+        "real_total": totals["real_total"],
+        "real_accepted": totals["real_accepted"],
+        "real_false_alarm": totals["real_false_alarm"],
+        "real_accepted_pct": safe_percentage(totals["real_accepted"], totals["real_total"]),
+        "real_false_alarm_pct": safe_percentage(totals["real_false_alarm"], totals["real_total"]),
+        "identity_total": totals["identity_total"],
+        "identity_correct": totals["identity_correct"],
+        "identity_wrong": totals["identity_wrong"],
+        "identity_correct_pct": safe_percentage(totals["identity_correct"], totals["identity_total"]),
+        "identity_wrong_pct": safe_percentage(totals["identity_wrong"], totals["identity_total"]),
+        "unlabeled_liveness": totals["unlabeled_liveness"],
+        "unknown_student": totals["unknown_student"],
+        "structure_errors": len(structure_errors),
+        "report_path": str(report_path.relative_to(BASE_DIR)),
+    }
+
+
+def write_debug_model_report(rows, structure_errors, totals):
+    DEBUG_MODEL_REPORT_DIR.mkdir(exist_ok=True)
+    generated_at = current_app_datetime()
+    timestamp = generated_at.strftime("%Y%m%d_%H%M%S_%f")
+    report_path = DEBUG_MODEL_REPORT_DIR / f"debug_model_accuracy_{timestamp}.json"
+    payload = {
+        "generated_at": generated_at.isoformat(),
+        "thresholds": {
+            "face_match": FACE_MATCH_THRESHOLD,
+            "spoof_real": SPOOF_REAL_THRESHOLD,
+        },
+        "totals": totals,
+        "structure_errors": structure_errors,
+        "rows": rows,
+    }
+    report_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return report_path
+
+
+@app.route("/settings/debug-model-evaluation", methods=["POST"])
+@login_required
+def debug_model_evaluation():
+    uploaded_file = request.files.get("debug_model_zip")
+
+    if uploaded_file is None or not uploaded_file.filename:
+        flash("Choose a debug model ZIP before running evaluation.", "error")
+        return redirect(url_for("dashboard", section="settings"))
+
+    if not uploaded_file.filename.lower().endswith(".zip"):
+        flash("Debug model evaluation only accepts .zip files.", "error")
+        return redirect(url_for("dashboard", section="settings"))
+
+    zip_bytes = uploaded_file.read(DEBUG_MODEL_ZIP_BYTES + 1)
+
+    if len(zip_bytes) > DEBUG_MODEL_ZIP_BYTES:
+        flash("ZIP file is too large. Maximum allowed size is 100 MB.", "error")
+        return redirect(url_for("dashboard", section="settings"))
+
+    try:
+        zip_file = zipfile.ZipFile(io.BytesIO(zip_bytes))
+    except zipfile.BadZipFile:
+        flash("Uploaded file is not a valid ZIP archive.", "error")
+        return redirect(url_for("dashboard", section="settings"))
+
+    try:
+        with zip_file:
+            result = evaluate_debug_model_zip(zip_file)
+            flask_session["debug_model_result"] = result
+
+        flash(
+            f"Debug evaluation complete: {result['processed']} processed, {result['failed']} failed. Report saved to {result['report_path']}.",
+            "success" if result["processed"] else "error"
+        )
+    except ValueError as error:
+        flash(str(error), "error")
+    except Exception as error:
+        flash(f"Debug evaluation failed: {error}", "error")
 
     return redirect(url_for("dashboard", section="settings"))
 
