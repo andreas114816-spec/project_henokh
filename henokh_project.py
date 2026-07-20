@@ -28,6 +28,7 @@ AI_PROGRAM_DIR = "ai_program"
 GUNICORN_HOST = "0.0.0.0"
 GUNICORN_PORT = "8000"
 GUNICORN_WORKERS = "3"
+GUNICORN_TIMEOUT = "600"
 
 AI_SERVICE_HOST = "127.0.0.1"
 AI_SERVICE_PORT = "8001"
@@ -1096,6 +1097,7 @@ trap cleanup_services EXIT INT TERM
 echo "Starting AI service..."
 (cd "$AI_PROGRAM_DIR" && "$GUNICORN_BIN" \\
     --workers "{AI_SERVICE_WORKERS}" \\
+    --timeout "{GUNICORN_TIMEOUT}" \\
     --bind "{AI_SERVICE_HOST}:{AI_SERVICE_PORT}" \\
     "app:app") &
 AI_PID="$!"
@@ -1110,6 +1112,7 @@ fi
 echo "Starting backend app..."
 (cd "$APP_PROGRAM_DIR" && "$GUNICORN_BIN" \\
     --workers "{GUNICORN_WORKERS}" \\
+    --timeout "{GUNICORN_TIMEOUT}" \\
     --bind "{GUNICORN_HOST}:{GUNICORN_PORT}" \\
     "app:app")
 """

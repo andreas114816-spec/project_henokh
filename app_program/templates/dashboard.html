@@ -506,6 +506,33 @@
                             <p class="mt-3 hidden text-sm font-medium text-blue-700" data-debug-model-status>
                                 Running model chain. Large ZIP files can take several minutes.
                             </p>
+
+                            {% if debug_model_jobs %}
+                                <div class="mt-4 rounded-lg border border-gray-200">
+                                    <div class="border-b bg-gray-50 px-3 py-2 text-xs font-semibold uppercase text-gray-500">
+                                        Recent Jobs
+                                    </div>
+                                    <div class="divide-y">
+                                        {% for job in debug_model_jobs %}
+                                            <div class="px-3 py-2 text-sm">
+                                                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                                    <span class="font-medium text-gray-900">{{ job.filename }}</span>
+                                                    <span class="text-xs font-semibold {% if job.status == 'completed' %}text-green-700{% elif job.status == 'failed' %}text-red-700{% else %}text-blue-700{% endif %}">
+                                                        {{ job.status|title }}
+                                                    </span>
+                                                </div>
+                                                {% if job.status == 'completed' and job.result %}
+                                                    <p class="mt-1 text-xs text-gray-600">{{ job.result.report_path }}</p>
+                                                {% elif job.status == 'failed' %}
+                                                    <p class="mt-1 text-xs text-red-700">{{ job.error }}</p>
+                                                {% else %}
+                                                    <p class="mt-1 text-xs text-gray-600">Started {{ job.started_at }}</p>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
 
                         {% if debug_model_result %}

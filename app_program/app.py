@@ -5,10 +5,13 @@ os.environ.setdefault("YOLO_CONFIG_DIR", "/tmp")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 import calendar
+import csv
 import io
 import json
 import math
 import re
+import threading
+import uuid
 import zipfile
 from datetime import date, datetime, time, timedelta
 from pathlib import Path, PurePosixPath
@@ -43,6 +46,8 @@ BULK_STUDENT_FAILURE_LOG_DIR = BASE_DIR / "logs"
 DEBUG_MODEL_ZIP_BYTES = 100 * 1024 * 1024
 DEBUG_MODEL_IMAGE_BYTES = 15 * 1024 * 1024
 DEBUG_MODEL_REPORT_DIR = BASE_DIR / "logs"
+DEBUG_MODEL_JOBS = {}
+DEBUG_MODEL_JOBS_LOCK = threading.Lock()
 DATABASE_BACKUP_FORMAT = "henokh-db-backup"
 DATABASE_BACKUP_VERSION = 1
 MAX_DATABASE_BACKUP_BYTES = 200 * 1024 * 1024
@@ -650,7 +655,8 @@ def dashboard():
             presence_context=presence_context,
             archived_cleanup_counts=archived_cleanup_counts,
             archived_restore_data=archived_restore_data,
-            debug_model_result=flask_session.pop("debug_model_result", None)
+            debug_model_result=get_latest_debug_model_result(),
+            debug_model_jobs=get_debug_model_jobs()
         )
     finally:
         SessionLocal.remove()
@@ -893,6 +899,83 @@ def safe_percentage(value, total):
 
 def normalize_debug_name(value):
     return re.sub(r"\s+", " ", (value or "").strip()).casefold()
+
+
+def trim_debug_model_jobs():
+    if len(DEBUG_MODEL_JOBS) <= 10:
+        return
+
+    ordered_jobs = sorted(
+        DEBUG_MODEL_JOBS.values(),
+        key=lambda job: job.get("started_at") or "",
+        reverse=True
+    )
+    keep_ids = {job["id"] for job in ordered_jobs[:10]}
+
+    for job_id in list(DEBUG_MODEL_JOBS):
+        if job_id not in keep_ids:
+            DEBUG_MODEL_JOBS.pop(job_id, None)
+
+
+def get_debug_model_jobs():
+    with DEBUG_MODEL_JOBS_LOCK:
+        return sorted(
+            (dict(job) for job in DEBUG_MODEL_JOBS.values()),
+            key=lambda job: job.get("started_at") or "",
+            reverse=True
+        )[:5]
+
+
+def get_latest_debug_model_result():
+    for job in get_debug_model_jobs():
+        if job.get("status") == "completed" and job.get("result"):
+            return job["result"]
+
+    return None
+
+
+def start_debug_model_job(zip_bytes, uploaded_filename):
+    job_id = uuid.uuid4().hex[:12]
+    job = {
+        "id": job_id,
+        "status": "running",
+        "filename": uploaded_filename or "-",
+        "started_at": current_app_datetime().isoformat(timespec="seconds"),
+    }
+
+    with DEBUG_MODEL_JOBS_LOCK:
+        DEBUG_MODEL_JOBS[job_id] = job
+        trim_debug_model_jobs()
+
+    thread = threading.Thread(
+        target=run_debug_model_job,
+        args=(job_id, zip_bytes),
+        daemon=True
+    )
+    thread.start()
+    return job
+
+
+def run_debug_model_job(job_id, zip_bytes):
+    try:
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zip_file:
+            result = evaluate_debug_model_zip(zip_file)
+
+        status_update = {
+            "status": "completed",
+            "finished_at": current_app_datetime().isoformat(timespec="seconds"),
+            "result": result,
+        }
+    except Exception as error:
+        status_update = {
+            "status": "failed",
+            "finished_at": current_app_datetime().isoformat(timespec="seconds"),
+            "error": str(error),
+        }
+
+    with DEBUG_MODEL_JOBS_LOCK:
+        if job_id in DEBUG_MODEL_JOBS:
+            DEBUG_MODEL_JOBS[job_id].update(status_update)
 
 
 def parse_debug_model_image_name(filename):
@@ -1160,18 +1243,89 @@ def write_debug_model_report(rows, structure_errors, totals):
     DEBUG_MODEL_REPORT_DIR.mkdir(exist_ok=True)
     generated_at = current_app_datetime()
     timestamp = generated_at.strftime("%Y%m%d_%H%M%S_%f")
-    report_path = DEBUG_MODEL_REPORT_DIR / f"debug_model_accuracy_{timestamp}.json"
-    payload = {
-        "generated_at": generated_at.isoformat(),
-        "thresholds": {
-            "face_match": FACE_MATCH_THRESHOLD,
-            "spoof_real": SPOOF_REAL_THRESHOLD,
-        },
-        "totals": totals,
-        "structure_errors": structure_errors,
-        "rows": rows,
-    }
-    report_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    report_path = DEBUG_MODEL_REPORT_DIR / f"debug_model_accuracy_{timestamp}.csv"
+    fieldnames = [
+        "file",
+        "status",
+        "class_name",
+        "expected_liveness",
+        "predicted_liveness",
+        "expected_name",
+        "predicted_name",
+        "expected_nim",
+        "predicted_nim",
+        "identity_result",
+        "identity_similarity",
+        "detections",
+        "error",
+    ]
+
+    with report_path.open("w", newline="", encoding="utf-8") as report_file:
+        writer = csv.writer(report_file)
+        writer.writerow(["Debug Model Evaluation"])
+        writer.writerow(["generated_at", generated_at.isoformat()])
+        writer.writerow(["face_match_threshold", FACE_MATCH_THRESHOLD])
+        writer.writerow(["spoof_real_threshold", SPOOF_REAL_THRESHOLD])
+        writer.writerow([])
+        writer.writerow(["metric", "count", "total", "percentage"])
+        writer.writerow([
+            "spoof_prevented",
+            totals["spoof_prevented"],
+            totals["spoof_total"],
+            safe_percentage(totals["spoof_prevented"], totals["spoof_total"]),
+        ])
+        writer.writerow([
+            "spoof_false_accepted",
+            totals["spoof_false_accepted"],
+            totals["spoof_total"],
+            safe_percentage(totals["spoof_false_accepted"], totals["spoof_total"]),
+        ])
+        writer.writerow([
+            "real_accepted",
+            totals["real_accepted"],
+            totals["real_total"],
+            safe_percentage(totals["real_accepted"], totals["real_total"]),
+        ])
+        writer.writerow([
+            "real_false_alarm",
+            totals["real_false_alarm"],
+            totals["real_total"],
+            safe_percentage(totals["real_false_alarm"], totals["real_total"]),
+        ])
+        writer.writerow([
+            "identity_correct",
+            totals["identity_correct"],
+            totals["identity_total"],
+            safe_percentage(totals["identity_correct"], totals["identity_total"]),
+        ])
+        writer.writerow([
+            "identity_wrong",
+            totals["identity_wrong"],
+            totals["identity_total"],
+            safe_percentage(totals["identity_wrong"], totals["identity_total"]),
+        ])
+        writer.writerow(["processed", totals["processed"], "", ""])
+        writer.writerow(["failed", totals["failed"], "", ""])
+        writer.writerow(["unlabeled_liveness", totals["unlabeled_liveness"], "", ""])
+        writer.writerow(["unknown_student", totals["unknown_student"], "", ""])
+        writer.writerow(["structure_errors", len(structure_errors), "", ""])
+        writer.writerow([])
+
+        if structure_errors:
+            writer.writerow(["filename_errors"])
+
+            for error in structure_errors:
+                writer.writerow([error])
+
+            writer.writerow([])
+
+        writer.writerow(["details"])
+        dict_writer = csv.DictWriter(report_file, fieldnames=fieldnames, extrasaction="ignore")
+        dict_writer.writeheader()
+
+        for row in rows:
+            dict_writer.writerow(row)
+
     return report_path
 
 
@@ -1195,24 +1349,17 @@ def debug_model_evaluation():
         return redirect(url_for("dashboard", section="settings"))
 
     try:
-        zip_file = zipfile.ZipFile(io.BytesIO(zip_bytes))
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)):
+            pass
     except zipfile.BadZipFile:
         flash("Uploaded file is not a valid ZIP archive.", "error")
         return redirect(url_for("dashboard", section="settings"))
 
-    try:
-        with zip_file:
-            result = evaluate_debug_model_zip(zip_file)
-            flask_session["debug_model_result"] = result
-
-        flash(
-            f"Debug evaluation complete: {result['processed']} processed, {result['failed']} failed. Report saved to {result['report_path']}.",
-            "success" if result["processed"] else "error"
-        )
-    except ValueError as error:
-        flash(str(error), "error")
-    except Exception as error:
-        flash(f"Debug evaluation failed: {error}", "error")
+    job = start_debug_model_job(zip_bytes, uploaded_file.filename)
+    flash(
+        f"Debug evaluation started in the background. Job {job['id']} is processing and will write a CSV report when finished.",
+        "success"
+    )
 
     return redirect(url_for("dashboard", section="settings"))
 
